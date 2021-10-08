@@ -1,0 +1,11 @@
+@layout('layouts/main')
+@set('title', `Applications | ${name}`)
+
+@section('body')
+    <p>Name: {{name}}</p>
+    {{status}}
+    <button onclick="window.location.reload(false)">Reload</button>
+    @each(log in logs)
+        <pre>{{log.line}}</pre>
+    @end
+@end

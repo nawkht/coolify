@@ -1,0 +1,11 @@
+/* @import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities'; */
+
+html {
+  font-family: Poppins;
+}
+
+/* .application {
+    @apply w-32 h-32  rounded p-2 text-center font-bold bg-gray-900 text-white hover:bg-gray-800;
+} */

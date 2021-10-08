@@ -1,0 +1,11 @@
+@layout('layouts/main')
+@set('title', `Settings | Destinations`)
+
+@section('body')
+  <div>
+    <a href="/settings/destinations/new">Add New Destination</a>
+  </div>
+ @each (docker in dockers)
+  {{docker.name}} -- {{docker.engine}}
+ @end
+@end

@@ -1,7 +1,8 @@
-.DS_Store
 node_modules
-/.svelte
-/build
-/functions
-.pnpm-store
-.pnpm-debug.log
+build
+coverage
+.vscode
+.DS_STORE
+.env
+tmp/*
+!tmp/.gitkeep

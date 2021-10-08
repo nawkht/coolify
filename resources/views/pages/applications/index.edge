@@ -1,0 +1,13 @@
+@layout('layouts/main')
+@set('title', 'Applications')
+
+@section('body')
+
+<a href='/applications/new'>New Application</a>
+    @each(app in applications)
+        @!component('../components/application', {
+        name: app.name
+        })
+    @end
+
+@end

@@ -1,0 +1,113 @@
+@layout('layouts/main')
+@set('title', `Settings | Git Sources`)
+@set('jquery', true)
+
+@section('body')
+  <div>
+    <a href="/settings/sources/new">Add New Git Source</a>
+  </div>
+  @if(error)
+    <div>{{error}}</div>
+  @end
+  @each (git in gitSources)
+    <p>{{git.name}}</p>
+    <form data-git={{JSON.stringify(git)}}>
+      <button id="get">Get </button>
+      @if (git.type ==='github' && !git.githubAppId)
+        <button id="addApp">Create new GitHub App</button>
+      @end
+      @if (git.githubApp)
+        @if (git.githubApp.installationId)
+        <button id="update">Update Repositories</button>
+        @else
+        <button id="install">Install Repositories</button>
+        @end
+      @end
+      <button id="remove">Remove</button>
+    </form>
+  @end
+
+  <script>
+    function dashify(str, options) {
+      if (typeof str !== 'string') return str;
+      return str
+        .trim()
+        .replace(/\W/g, (m) => (/[À-ž]/.test(m) ? m : '-'))
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, (m) => (options && options.condense ? '-' : m))
+        .toLowerCase();
+    }
+     $("form #get").click(function(e) {
+        e.preventDefault();
+        const git = $(this).parent().data().git
+        console.log(git)
+     })
+     $("form #install").click(function(e) {
+        e.preventDefault();
+        const git = $(this).parent().data().git
+        window.location.replace(`https://github.com/apps/${git.githubApp.name}/installations/new`)
+     })
+     $("form #update").click(function(e) {
+        e.preventDefault();
+        const git = $(this).parent().data().git
+        window.location.replace(`https://github.com/apps/${git.githubApp.name}/installations/new`)
+     })
+    $("form #addApp").click(function(e) {
+        e.preventDefault();
+        const git = $(this).parent().data().git
+        if (git.type === 'github') {
+          let url = 'settings/apps/new'
+          if (git.organization) url = `organizations/${git.organization}/settings/apps/new`
+          const host = dashify(window.location.host)
+          const data = JSON.stringify({
+            name: `coolify-${host}`,
+            url: `https://${window.location.host}`,
+            // hook_attributes: {
+            //     url: `https://${.host}/api/v1/webhooks/deploy`
+            // },
+            redirect_url: `http://${window.location.host}/api/v1/webhooks/github`,
+            callback_urls: [`https://${window.location.host}/api/v1/login/github/app`],
+            public: false,
+            request_oauth_on_install: false,
+            setup_url: `http://${window.location.host}/api/v1/webhooks/github/installation?gitSourceId=${git.id}`,
+            setup_on_update: true,
+            default_permissions: {
+            contents: 'read',
+            metadata: 'read',
+            pull_requests: 'read',
+            emails: 'read'
+          },
+          // default_events: ['pull_request', 'push']
+        });
+        // console.log(git)
+        const form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", `${git.html_url}/${url}?state=${git.id}`);
+        const input = document.createElement("input")
+        input.setAttribute("id", "manifest")
+        input.setAttribute("name", "manifest")
+        input.setAttribute("type", "hidden")
+        input.setAttribute("value", data)
+        form.appendChild(input)
+        document.getElementsByTagName("body")[0].appendChild(form);
+        form.submit()
+      }
+    });
+    $("form #remove").click(function(e) {
+        e.preventDefault();
+        const git = $(this).parent().data().git
+        const sure = confirm('Are you sure you would like to delete it?');
+        if (sure) {
+          $.ajax({ 
+            url: `/settings/sources/delete`, 
+            method: 'DELETE', 
+            data: { gitId: git.id }
+          }).done(()=>{
+            window.location.reload()
+          }).fail((error)=> {
+            alert(error.responseJSON.error)
+          })
+        }
+      });
+  </script>
+@end

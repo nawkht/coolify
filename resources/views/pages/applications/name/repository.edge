@@ -1,0 +1,97 @@
+@layout('layouts/main')
+@set('title', `Applications | ${name}`)
+@set('jquery', true)
+
+@section('body')
+
+<p>Name: {{name}}</p>
+
+@if(application.gitSource.githubApp.installationId)
+<form action="/applications/{{name}}/repository" method="POST">
+  <select name="repository" id="repositories" disabled>
+    <option selected value="">Loading repositories</option>
+  </select>
+  <select name="branch" id="branches" disabled>
+    <option id="default" selected value="">Select a repository first</option>
+  </select>
+  <input id="save" type="submit" value="Save" disabled>
+</form>
+
+<script>
+  async function loadRepos({ token, page }) {
+    const nextPage = page || 1
+    return $.ajax({ 
+      url: `https://api.github.com/installation/repositories?per_page=100&page=${nextPage}`,
+      headers: {
+          Authorization: `token ${token}`
+      }
+    })
+  }
+    $(document).ready(()=> {
+      let token;
+      $('#branches').change(function () {
+        $('#save').attr('disabled','disabled')
+        const repository = $(this).parent().children('#repositories').val()
+        const branch = $(this).parent().children('#branches').val()
+        $.ajax({ 
+          url: `/api/v1/applications/repository/isAvailable`,
+          method: 'POST',
+          data: { repository, branch }
+        }).done((data) => {
+          $('#save').removeAttr('disabled')
+        }).fail((error) => {
+          alert(error.responseText)
+        })
+      })
+      $('#repositories').change(function () {
+        $('#branches #default').text('Loading branches')
+        const fullName = $(this).val()
+          $.ajax({ 
+          url: `https://api.github.com/repos/${fullName}/branches`,
+          headers: {
+            Authorization: `token ${token}`
+          }
+        }).done(async (data) => {
+          let branches = data.map(branch => {
+             return `<option value="${branch.name}">${branch.name}</option>`
+          })
+          branches = [`<option value="" disabled selected>Please select a branch</option>`].concat(branches)
+          $('#branches').html(branches.join(' ')).removeAttr('disabled')
+        })
+      })
+
+      $.ajax({ 
+        url: `https://api.github.com/app/installations/{{application.gitSource.githubApp.installationId}}/access_tokens`,
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer {{githubAppToken}}`
+        }
+      }).done(async (data)=>{
+        let page = 1
+        let repositories = []
+        let reposCount = 0
+        token = data.token
+        const loadedRepos = await loadRepos({ token })
+        repositories = repositories.concat(loadedRepos.repositories)
+        reposCount = loadedRepos.total_count
+        if (reposCount > repositories.length) {
+          while (reposCount > repositories.length) {
+            page = page + 1
+            const repos = await loadRepos({ token, page })
+            repositories = repositories.concat(repos.repositories)
+          }
+        }
+        let options = repositories.map(r => {
+         return `<option name="repository" value="${r.full_name}">${r.name}</option>`
+        })
+        options = [`<option value="" disabled selected>Please select a repository</option>`].concat(options)
+        $('#repositories').html(options.join(' ')).removeAttr('disabled')
+      })  
+    })
+</script>
+@else
+  <p>No repository installed on your Git Application.</p>
+  <a href="https://github.com/apps/{{application.gitSource.githubApp.name}}/installations/new">Install repositories</a>
+@end
+
+@end

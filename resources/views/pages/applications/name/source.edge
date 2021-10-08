@@ -1,0 +1,26 @@
+@layout('layouts/main')
+@set('title', `Applications | Add Git Source`)
+
+@section('body')
+{{application.name}}
+@if (application.gitSource)
+    <p>Source: {{application.gitSource.name}}  -- {{application.gitSource.htmlUrl}}  -- {{application.gitSource.apiUrl}}</p>
+    @if (application.gitSource.githubApp)
+       <p>App: {{application.gitSource.githubApp.name}}</p>
+    @end
+@end
+    @if (!gitSources || gitSources.length === 0) 
+    <p> No Git Source found with a configured Git Application </p>
+    <a href="/settings/sources">Configure a Git Application</a>
+    @end
+    @each(source in gitSources)
+        <form action="/applications/{{name}}/source" method="POST">
+            <input class="hidden" name="gitSourceId" value={{source.id}}>
+            @!component('../components/primary-button', {
+                text: `Use ${source.name} as source`,
+                type: 'submit',
+                class: 'py-2 px-8 text-white bg-gray-800 w-96 hover:bg-gray-500',
+            })
+        </form>
+    @end
+@end

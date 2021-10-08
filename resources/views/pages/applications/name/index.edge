@@ -1,0 +1,93 @@
+@layout('layouts/main')
+@set('title', `Applications | ${name}`)
+@set('jquery', true)
+@section('body')
+    <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a>
+    @if(application.gitSource)
+        <a class="text-white bg-gray-800" href='/applications/{{name}}/repository'>Set Repository</a>
+    @else
+        <a class="text-white bg-gray-800">Set Repository (Set Git Source first)</a>
+    @end
+    <a class="text-white bg-gray-800" href='/applications/{{name}}/destination'>Set Destination</a>
+    <p>Name: {{name}}</p>
+    @if (application.gitSource)
+        <p>Source: {{application.gitSource.name}}</p>
+    @else
+        <p>Source: Not set<p>
+    @end
+
+    @if (application.repository && application.branch)
+        <p>Repo: {{application.repository}}:{{application.branch}}</p>
+    @else
+        <p>Repo: Not set<p>
+    @end
+  
+    @if (application.destinationDocker)
+        <p>Destination: {{application.destinationDocker.name}}</p>
+    @else
+        <p>Destination: Not set<p>
+    @end
+    <form action="/applications/{{name}}/configuration" method="POST" id="configuration">
+        <select name="buildPack" id="buildPack">
+            @if (application.buildPack)
+                <option disabled>Select a buildpack</option>
+                <option selected>{{application.buildPack}}</option>
+            @else
+                <option selected disabled>Select a buildpack</option>
+            @end
+            @each(buildPack in buildPacks.filter(bp => bp !== application.buildPack))
+                <option>{{buildPack}}</option>
+            @end
+            </select>
+        <label for="port">Port</label>
+        <input id="port" name="port" value="{{application.port || ''}}"  placeholder="3000">
+        <label for="installCommand">Install Command</label>
+        <input id="installCommand" name="installCommand" value="{{application.installCommand || ''}}" placeholder="yarn install">
+        <label for="buildCommand">Build Command</label>
+        <input id="buildCommand" name="buildCommand" value="{{application.buildCommand || ''}}" placeholder="yarn build">
+        <label for="startCommand">Start Command</label>
+        <input id="startCommand" name="startCommand" value="{{application.startCommand || ''}}" placeholder="yarn start">
+        <input type="submit" value="Save Configuration" id="saveConfiguration" disabled >
+    </form>
+    @if(application.gitSource && application.repository && application.destinationDocker)
+        <form action="/applications/{{name}}/deploy" method="POST">
+            <input type="submit" value="Deploy" id="deploy"></button>
+        </form>
+    @else
+        <form>
+            <input type="submit" value="Deploy" id="deploy" disabled></button>
+        </form>
+    @end
+<script>
+    function getFormData(form){
+        var unindexed_array = form.serializeArray();
+        var indexed_array = {}; 
+
+        $.map(unindexed_array, function(n, i){
+            indexed_array[n['name']] = n['value'];
+        });
+        return indexed_array;
+    }
+    $(document).ready(()=> {
+        const init = {
+            buildPack: $('#buildPack').val(),
+            port: $('#port').val(),
+            installCommand:$('#installCommand').val(),
+            buildCommand:$('#buildCommand').val(),
+            startCommand:$('#startCommand').val(),
+        }
+        $('#buildPack, #port, #installCommand, #buildCommand, #startCommand').on('input',function(e) {
+            const configuration = getFormData($('#configuration'))
+            // Only simple types used, no deep comparison needed.
+            if (JSON.stringify(configuration) !== JSON.stringify(init)) {
+                $('#saveConfiguration').removeAttr('disabled')
+                $('#deploy').attr('disabled', 'true')
+            } else {
+                $('#saveConfiguration').attr('disabled', 'true')
+                $('#deploy').removeAttr('disabled')
+            }
+
+        })
+    })
+</script>
+@end

@@ -1,0 +1,14 @@
+@layout('layouts/main')
+@set('title', 'Dashboard')
+
+@section('body')
+<p>Applications</p>
+<div class="flex space-x-2 justify-center">
+  @each(app in applications)
+    @!component('../components/application', {
+      name: app.name
+    })
+  @end
+</div>
+
+@end

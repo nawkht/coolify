@@ -1,0 +1,16 @@
+@layout('layouts/main')
+@set('title', `Applications | New`)
+
+@section('body')
+<form action="/applications/new" method="POST">
+    @if(found)
+    <div class="text-red-500">Application name already exists</div>
+    @end
+    <input name="appName" placeholder="Application name">
+    @!component('../components/primary-button', {
+      text: 'Create Application',
+      type: 'submit',
+      class: 'py-2 px-8 text-white bg-gray-800',
+    })
+  </form>
+@end

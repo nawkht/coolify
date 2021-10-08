@@ -1,0 +1,27 @@
+@layout('layouts/main')
+@set('title', 'Helo')
+
+@section('body')
+      <div class="flex space-x-2">
+        @if(isLoggedIn)
+          <form action="/logout" method="POST">
+            @!component('../components/primary-button', {
+              text: 'Logout',
+              type: 'submit',
+              class: 'py-2 px-8 text-white bg-gray-800',
+            })
+          </form>
+        @else
+
+        <form action="/login" method="POST" class="space-x-2">
+          <input name="email" type="text" class="border px-2" placeholder="email">
+          <input name="password" type="password" class="border px-2" placeholder="password">
+          @!component('../components/primary-button', {
+            text: 'Login',
+            type: 'submit',
+            class: 'py-2 px-8 text-white bg-gray-800',
+          })
+        </form>
+        @end
+      </div>
+    @end

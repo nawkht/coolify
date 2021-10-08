@@ -1,0 +1,23 @@
+@layout('layouts/main')
+@set('title', `Settings | New Destination`)
+
+@section('body')
+
+@if (error)
+    {{error}}
+@end
+<form action="/settings/destinations/new" method="POST">
+    <input name="name" placeholder="name">
+    <div>
+        <label for="isSwarm">Is it a Swarm?</label>
+        <input name="isSwarm" type="checkbox">
+    </div>
+    <input name="engine" placeholder="/var/run/docker.sock" value="/var/run/docker.sock">
+    <input name="network" placeholder="network">
+    @!component('../components/primary-button', {
+        text: `Add new destination`,
+        type: 'submit',
+        class: 'py-2 px-8 text-white bg-gray-800 w-96 hover:bg-gray-500',
+    })
+</form>
+@end
