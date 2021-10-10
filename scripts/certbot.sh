@@ -1,0 +1,1 @@
+certbot --work-dir /data/coolify/haproxy/ssl/certs --logs-dir /data/coolify/haproxy/ssl/logs --config-dir /data/coolify/haproxy/ssl/conf certonly --standalone --preferred-challenges http --http-01-address 127.0.0.1 --http-01-port 9080 -d dev.coolify.io --agree-tos --non-interactive --test-cert

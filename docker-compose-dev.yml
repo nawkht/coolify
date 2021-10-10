@@ -7,6 +7,7 @@ services:
       - coollabs-dev
     volumes:
       - './haproxy-dev.cfg:/usr/local/etc/haproxy/haproxy.cfg'
+      - '/data/coolify/haproxy:/data/coolify/haproxy'
     ports: 
       - target: 80
         published: 80
