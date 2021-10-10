@@ -5,9 +5,9 @@
   "license": "AGPL-3.0",
   "scripts": {
     "dev:migrate": "rm ./tmp/db.sqlite3; node ace migration:run && node ace db:seed",
-    "dev:proxy": "docker run --rm -it -p 9901:9901 -p 10000:10000 envoyproxy/envoy:v1.19.1",
     "dev:seed": "node ace db:seed",
-    "dev:redis": "docker-compose -f docker-compose-dev.yml up -d",
+    "dev:docker:start": "docker-compose -f docker-compose-dev.yml up -d",
+    "dev:docker:stop": "docker-compose -f docker-compose-dev.yml down",
     "dev": "node ace serve --watch",
     "build": "node ace build --production",
     "start": "node server.js",
