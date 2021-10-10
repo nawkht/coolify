@@ -3,6 +3,8 @@ version: '3.8'
 services:
   proxy: 
     image: 'haproxytech/haproxy-ubuntu:2.4'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     networks:
       - coollabs-dev
     volumes:
