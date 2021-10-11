@@ -7,9 +7,9 @@ services:
       context: .
       dockerfile: Dockerfile-dev
     volumes:
-      - ~/.pnpm-store/:/root/.pnpm-store/
-      - .:/app
-      - /var/run/docker.sock:/var/run/docker.sock
+      - '~/.pnpm-store/:/root/.pnpm-store/'
+      - '.:/app'
+      - '/var/run/docker.sock:/var/run/docker.sock'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     ports:
@@ -31,8 +31,7 @@ services:
     networks:
       - coollabs-dev
     volumes:
-      - './haproxy-dev.cfg:/usr/local/etc/haproxy/haproxy.cfg'
-      - '/data/coolify/haproxy:/data/coolify/haproxy'
+      - './tmp/haproxy/:/usr/local/etc/haproxy/'
     ports: 
       - target: 80
         published: 80

@@ -4,5 +4,6 @@ coverage
 .vscode
 .DS_STORE
 .env
-tmp/*
-!tmp/.gitkeep
+tmp/db.sqlite3
+tmp/haproxy/haproxy.cfg
+tmp/haproxy/haproxy.cfg.lkg
