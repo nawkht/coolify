@@ -1,8 +1,31 @@
 version: '3.8'
 
 services:
-  proxy: 
+  coolify:
+    container_name: coolify
+    build: 
+      context: .
+      dockerfile: Dockerfile-dev
+    volumes:
+      - ~/.pnpm-store/:/root/.pnpm-store/
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    ports:
+      - target: 3333
+        published: 3333
+        protocol: tcp
+        mode: host
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: host
+    networks:
+      - coollabs-dev
+  haproxy: 
     image: 'haproxytech/haproxy-ubuntu:2.4'
+    container_name: coolify-haproxy
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     networks:
@@ -29,6 +52,7 @@ services:
         mode: host
   redis:
     image: 'bitnami/redis:6.2'
+    container_name: coolify-redis
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
     networks:

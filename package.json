@@ -6,7 +6,7 @@
   "scripts": {
     "dev:migrate": "rm ./tmp/db.sqlite3; node ace migration:run && node ace db:seed",
     "dev:seed": "node ace db:seed",
-    "dev:docker:start": "docker-compose -f docker-compose-dev.yml up -d",
+    "dev:docker:start": "docker-compose -f docker-compose-dev.yml up -d --force-recreate",
     "dev:docker:stop": "docker-compose -f docker-compose-dev.yml down",
     "dev": "node ace serve --watch",
     "build": "node ace build --production",

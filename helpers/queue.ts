@@ -10,9 +10,16 @@ const mode = Application.nodeEnvironment
 const dev = mode === 'development'
 
 const buildQueueName = dev ? cuid() : 'build_queue'
-const buildQueue = new Queue(buildQueueName)
+const buildQueue = new Queue(buildQueueName, {
+  connection: {
+    host: 'coolify-redis'
+  }
+})
 const buildWorker = new Worker(buildQueueName, async (job) => await builder(job), {
   concurrency: 2,
+  connection: {
+    host: 'coolify-redis'
+  }
 })
 
 buildWorker.on('completed', async (job: Job) => {
