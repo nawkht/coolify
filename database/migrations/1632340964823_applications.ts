@@ -8,6 +8,7 @@ export default class Applications extends BaseSchema {
       table.string('id').primary()
       table.string('name').unique()
       table.string('domain').unique()
+      table.string('old_domain')
 
       table.string('repository')
       table.string('branch')

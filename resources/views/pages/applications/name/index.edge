@@ -39,6 +39,8 @@
                 <option>{{buildPack}}</option>
             @end
             </select>
+        <label for="domain">Domain</label>
+        <input id="domain" name="domain" value="{{application.domain || ''}}"  placeholder="coollabs.io" required>
         <label for="port">Port</label>
         <input id="port" name="port" value="{{application.port || ''}}"  placeholder="3000">
         <label for="installCommand">Install Command</label>
@@ -71,12 +73,13 @@
     $(document).ready(()=> {
         const init = {
             buildPack: $('#buildPack').val(),
+            domain: $('#domain').val(),
             port: $('#port').val(),
             installCommand:$('#installCommand').val(),
             buildCommand:$('#buildCommand').val(),
             startCommand:$('#startCommand').val(),
         }
-        $('#buildPack, #port, #installCommand, #buildCommand, #startCommand').on('input',function(e) {
+        $('#buildPack, #domain, #port, #installCommand, #buildCommand, #startCommand').on('input',function(e) {
             const configuration = getFormData($('#configuration'))
             // Only simple types used, no deep comparison needed.
             if (JSON.stringify(configuration) !== JSON.stringify(init)) {

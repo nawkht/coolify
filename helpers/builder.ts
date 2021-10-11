@@ -6,13 +6,15 @@ import * as importers from './importers'
 import { dockerInstance } from './docker'
 import { asyncExecShell, saveBuildLog } from './common'
 import Application from 'App/Models/Application'
+import got from 'got'
 
 export default async function (job) {
   /*
     Edge cases:
     1 - Change build pack and redeploy, what should happen?
   */
-  const { id, repository, branch, build_pack: buildPack, destinationDocker, gitSource, build_id: buildId, config_hash: configHash, port, install_command: installCommand, build_command: buildCommand, start_command: startCommand } = job.data
+  let { id, repository, branch, build_pack: buildPack, destinationDocker, gitSource, build_id: buildId, config_hash: configHash, port, install_command: installCommand, build_command: buildCommand, start_command: startCommand, domain, old_domain: oldDomain } = job.data
+
   const destinationSwarm = null
   const kubernetes = null
 
@@ -31,6 +33,13 @@ export default async function (job) {
   const workdir = `/tmp/build-sources/${repository}/${build.id}`
   await asyncExecShell(`mkdir -p ${workdir}`)
 
+  // TODO: Separate logic
+  console.log(domain, oldDomain)
+  if (buildPack === 'node') {
+    if (!port) port = 3000
+    if (!installCommand) installCommand = 'yarn install'
+    if (!startCommand) startCommand = 'yarn start'
+  }
   const commit = await importers[gitSource.type]({ workdir, githubAppId: gitSource.githubApp.id, repository, branch, buildId: build.id })
   await build.merge({ commit }).save()
 
@@ -60,7 +69,7 @@ export default async function (job) {
     saveBuildLog({ line: 'Nothing changed.', buildId })
   }
 
-  // TODO: Move this to deploy.ts?
+  // TODO: Separate logic
   if (deployNeeded) {
     if (destinationDocker) {
       // Deploy to docker
@@ -80,6 +89,7 @@ export default async function (job) {
         if (stderr) console.log(stderr)
         saveBuildLog({ line: 'Deployment successful!', buildId })
       }
+      // TODO: Implement remote docker engine
 
     } else if (destinationSwarm) {
       // Deploy to swarm
@@ -87,6 +97,84 @@ export default async function (job) {
       // Deploy to k8s
     }
   }
+  // TODO: Separate logic
+  const haproxy = got.extend({
+    prefixUrl: 'http://coolify-haproxy:5555',
+    username: 'haproxy-dataplaneapi',
+    password: 'adminpwd'
+  });
+
+  try {
+    let version = 1
+    const raw = await haproxy.get(`v2/services/haproxy/configuration/raw`).json()
+    if (raw?._version) version = raw._version
+
+    const newTransaction: any = await haproxy.post('v2/services/haproxy/transactions', {
+      searchParams: {
+        version
+      }
+    }).json()
+
+    try {
+      const backendFound = await haproxy.get(`v2/services/haproxy/configuration/backends/${domain}`).json()
+      if (backendFound) {
+        await haproxy.delete(`v2/services/haproxy/configuration/backends/${domain}`, {
+          searchParams: {
+            transaction_id: newTransaction.id
+          },
+        }).json()
+        saveBuildLog({ line: 'HAPROXY - Old backend deleted.', buildId })
+      }
+
+    } catch (error) {
+      // Backend not found, no worries, it means it's not defined yet
+    }
+    try {
+      console.log(oldDomain)
+      if (oldDomain) {
+        await haproxy.delete(`v2/services/haproxy/configuration/backends/${oldDomain}`, {
+          searchParams: {
+            transaction_id: newTransaction.id
+          },
+        }).json()
+        const applicationFound = await Application.findOrFail(id)
+        await applicationFound.merge({ oldDomain: '' }).save()
+        saveBuildLog({ line: 'HAPROXY - Old backend deleted with different domain.', buildId })
+      }
+    } catch (error) {
+      // Backend not found, no worries, it means it's not defined yet
+    }
+    await haproxy.post('v2/services/haproxy/configuration/backends', {
+      searchParams: {
+        transaction_id: newTransaction.id
+      },
+      json: {
+        "forwardfor": { "enabled": "enabled" },
+        "name": domain
+      }
+    })
+
+    saveBuildLog({ line: 'HAPROXY - New backend defined.', buildId })
+    await haproxy.post('v2/services/haproxy/configuration/servers', {
+      searchParams: {
+        transaction_id: newTransaction.id,
+        backend: domain
+      },
+      json: {
+        "address": id,
+        "check": "enabled",
+        "name": id,
+        "port": port
+      }
+    })
+    saveBuildLog({ line: 'HAPROXY - New servers defined.', buildId })
+
+    await haproxy.put(`v2/services/haproxy/transactions/${newTransaction.id}`)
+    saveBuildLog({ line: 'HAPROXY - Transaction done.', buildId })
+  } catch (error) {
+    console.log(error)
+  }
+
 
   await asyncExecShell(`rm -fr ${workdir}`)
 }

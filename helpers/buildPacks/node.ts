@@ -31,10 +31,6 @@ const buildImage = async ({ id, commit, workdir, docker, buildId }) => {
 export default async function ({ id, commit, workdir, docker, buildId, port, installCommand, buildCommand, startCommand }) {
     // TODO: Select node version
     const nodeVersion = 'lts'
-    if (!port) port = 3000
-    if (!installCommand) installCommand = 'yarn install'
-    if (!startCommand) startCommand = 'yarn start'
-
     Logger.info('Buildpack started.')
     await createDockerfile({ nodeVersion, workdir, port, installCommand, buildCommand, startCommand })
     Logger.info('Image building started.')

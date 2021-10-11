@@ -17,6 +17,9 @@ export default class Application extends BaseModel {
   public domain: string
 
   @column()
+  public oldDomain: string
+
+  @column()
   public port: number
 
   @column()
