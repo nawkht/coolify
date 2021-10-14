@@ -174,6 +174,24 @@ export default async function (job) {
   } catch (error) {
     console.log(error)
   }
+  // Set SSL with Let's encrypt
+  if (destinationDocker) {
+    // Deploy to docker
+    // TODO: Must be localhost
+    if (destinationDocker.engine === '/var/run/docker.sock') {
+      // TODO: Must wait if there is a certbot container already running
+      saveBuildLog({ line: 'Requesting SSL cert.', buildId })
+      const { stderr } = await asyncExecShell(`docker run -it --rm --name certbot -p 9080:9080 -v "/usr/local/etc/haproxy/:/usr/local/etc/haproxy/" certbot/certbot --work-dir /usr/local/etc/haproxy/ssl certonly --standalone --preferred-challenges http --http-01-address 0.0.0.0 --http-01-port 9080 -d ${domain} --agree-tos --non-interactive --register-unsafely-without-email`)
+      if (stderr) console.log(stderr)
+      saveBuildLog({ line: 'SSL cert requested successfully!', buildId })
+    }
+    // TODO: Implement remote docker engine
+
+  } else if (destinationSwarm) {
+    // Deploy to swarm
+  } else if (kubernetes) {
+    // Deploy to k8s
+  }
 
 
   await asyncExecShell(`rm -fr ${workdir}`)
