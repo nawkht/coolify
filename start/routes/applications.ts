@@ -31,6 +31,13 @@ Route.post('/applications/new', async ({ request, response, view }) => {
   return response.redirect(`/applications/${appName}`)
 })
 
+Route.post('/applications/:name/delete', async ({ response, params }) => {
+  // TODO: must clear out haproxy configuration
+  const applicationFound = await Application.findByOrFail('name', params.name)
+  await applicationFound.delete()
+  return response.redirect('/dashboard')
+})
+
 Route.get('/applications/:name', async ({ response, params, view }) => {
   if (params.name === 'new') return view.render('pages/applications/new')
   let applicationFound = await Application.findByOrFail('name', params.name)

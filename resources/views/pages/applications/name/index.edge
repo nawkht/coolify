@@ -75,11 +75,13 @@
             <input type="submit" value="Disable force https" id="disableSslForce"></button>
         </form>
     @end
+        <form action="/applications/{{name}}/delete" method="POST">
+            <input type="submit" value="Delete" id="delete"></button>
+        </form>
 <script>
     function getFormData(form){
-        var unindexed_array = form.serializeArray();
-        var indexed_array = {}; 
-
+        const unindexed_array = form.serializeArray();
+        let indexed_array = {};
         $.map(unindexed_array, function(n, i){
             indexed_array[n['name']] = n['value'];
         });
