@@ -5,16 +5,18 @@ import { streamEvents } from 'Helpers/docker';
 const createDockerfile = async ({ nodeVersion, workdir, port, installCommand, buildCommand, startCommand }): Promise<void> => {
     Logger.info('Creating Dockerfile')
     let Dockerfile: Array<string> = []
-    Dockerfile.push(`FROM node:${nodeVersion}`)
+    Dockerfile.push(`FROM node:${nodeVersion} as install`)
     Dockerfile.push('WORKDIR /usr/src/app')
     Dockerfile.push(`COPY package*.json ./`)
     Dockerfile.push(`RUN ${installCommand}`)
-    // TODO: base and publish dir
-    // if (buildCommand) {
-    //     
-    //     Dockerfile.push(`RUN ${buildCommand}`)
-    // }
     Dockerfile.push(`COPY ./ ./`)
+    if (buildCommand) {
+        Dockerfile.push(`FROM install as build`)
+        Dockerfile.push(`RUN ${buildCommand}`)
+    } else {
+        Dockerfile.push(`FROM install`)
+    }
+    // TODO: base and publish dir
     Dockerfile.push(`EXPOSE ${port}`)
     Dockerfile.push(`CMD ${startCommand}`)
     await fs.writeFile(`${workdir}/Dockerfile`, Dockerfile.join('\n'))

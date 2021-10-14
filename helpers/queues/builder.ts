@@ -34,7 +34,6 @@ export default async function (job) {
   await asyncExecShell(`mkdir -p ${workdir}`)
 
   // TODO: Separate logic
-  console.log(domain, oldDomain)
   if (buildPack === 'node') {
     if (!port) port = 3000
     if (!installCommand) installCommand = 'yarn install'
@@ -62,6 +61,7 @@ export default async function (job) {
   } catch (error) {
     //
   }
+  // TODO: Should check if it's running!
   if (!imageFound || deployNeeded) {
     await buildpacks[buildPack]({ id, commit, workdir, docker, buildId: build.id, port, installCommand, buildCommand, startCommand })
   } else {
