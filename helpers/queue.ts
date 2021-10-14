@@ -55,13 +55,10 @@ const letsEncryptWorker = new Worker(letsEncryptQueueName, async (job) => await 
 letsEncryptWorker.on('completed', async (job: Job) => {
   // TODO: Save letsencrypt logs as build logs!
   console.log('Lets Encrypt job completed')
-  console.log(job.data)
-
 })
 
 letsEncryptWorker.on('failed', async (job: Job, failedReason: string) => {
   console.log('Lets Encrypt job failed')
   console.log(failedReason)
- 
 })
 export { buildQueue, letsEncryptQueue }

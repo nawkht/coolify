@@ -1,6 +1,7 @@
 @layout('layouts/main')
 @set('title', `Applications | ${name}`)
 @set('jquery', true)
+
 @section('body')
     <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a>
     @if(application.gitSource)
@@ -9,8 +10,8 @@
         <a class="text-white bg-gray-800">Set Repository (Set Git Source first)</a>
     @end
     <a class="text-white bg-gray-800" href='/applications/{{name}}/destination'>Set Destination</a>
-    <p>Name: {{name}}</p>
-    @if (application.gitSource)
+    <p>Name: {{name}} Domain: {{application.domain}}</p>
+        @if (application.gitSource)
         <p>Source: {{application.gitSource.name}}</p>
     @else
         <p>Source: Not set<p>
