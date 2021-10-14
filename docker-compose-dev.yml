@@ -6,9 +6,12 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-dev
+    command: sh -c '/usr/local/bin/init-dev.sh'
     volumes:
-      - '~/.pnpm-store/:/root/.pnpm-store/'
       - '.:/app'
+      - '/data/coolify/haproxy/:/data/coolify/haproxy/'
+      - '/data/coolify/letsencrypt/:/data/coolify/letsencrypt/'
+      - '/data/coolify/.pnpm-store/:/root/.pnpm-store/'
       - '/var/run/docker.sock:/var/run/docker.sock'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -31,7 +34,7 @@ services:
     networks:
       - coollabs-dev
     volumes:
-      - './tmp/haproxy/:/usr/local/etc/haproxy/'
+      - '/data/coolify/haproxy/:/usr/local/etc/haproxy/'
     ports: 
       - target: 80
         published: 80

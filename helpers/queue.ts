@@ -1,10 +1,11 @@
 import Application from '@ioc:Adonis/Core/Application'
-import builder from 'Helpers/builder'
+import builder from 'Helpers/queues/builder'
 import type { Job } from 'bullmq'
 import { Queue, Worker } from 'bullmq'
 import cuid from 'cuid'
 import { saveBuildLog } from './common'
 import Build from 'App/Models/Build'
+import letsencrypt from './queues/letsencrypt'
 
 const mode = Application.nodeEnvironment
 const dev = mode === 'development'
@@ -38,4 +39,29 @@ buildWorker.on('failed', async (job: Job, failedReason: string) => {
   saveBuildLog({ line: `Reason: ${failedReason.toString()}`, buildId: job.data.build_id })
 })
 
-export { buildQueue }
+const letsEncryptQueueName = dev ? cuid() : 'letsencrypt_queue'
+const letsEncryptQueue = new Queue(letsEncryptQueueName, {
+  connection: {
+    host: 'coolify-redis'
+  }
+})
+
+const letsEncryptWorker = new Worker(letsEncryptQueueName, async (job) => await letsencrypt(job), {
+  concurrency: 1,
+  connection: {
+    host: 'coolify-redis'
+  }
+})
+letsEncryptWorker.on('completed', async (job: Job) => {
+  // TODO: Save letsencrypt logs as build logs!
+  console.log('Lets Encrypt job completed')
+  console.log(job.data)
+
+})
+
+letsEncryptWorker.on('failed', async (job: Job, failedReason: string) => {
+  console.log('Lets Encrypt job failed')
+  console.log(failedReason)
+ 
+})
+export { buildQueue, letsEncryptQueue }

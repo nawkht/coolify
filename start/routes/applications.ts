@@ -7,8 +7,10 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import cuid from 'cuid'
 import crypto from 'crypto'
 
-import { buildQueue } from 'Helpers/queue'
+import { buildQueue, letsEncryptQueue } from 'Helpers/queue'
 import Build from 'App/Models/Build'
+import { getNextTransactionId, haproxyInstance, completeTransaction } from 'Helpers/haproxy'
+import { HttpRequestRule } from 'Helpers/types'
 
 const buildPacks = ['node', 'static']
 
@@ -47,6 +49,90 @@ Route.get('/applications/:name', async ({ response, params, view }) => {
     })
   }
   return response.redirect('/dashboard')
+})
+
+Route.post('/applications/:name/ssl/force', async ({ params, response }) => {
+  const applicationFound = await Application.findByOrFail('name', params.name)
+  const transactionId = await getNextTransactionId()
+  const httpRules: HttpRequestRule = await haproxyInstance().get(`v2/services/haproxy/configuration/http_request_rules`, {
+    searchParams: {
+      parent_name: 'http',
+      parent_type: 'frontend'
+    },
+  }).json()
+  let foundIndex = 0
+  if (httpRules.data.length > 0) {
+    foundIndex = httpRules.data.find(rule => {
+      if (rule.cond_test.includes(applicationFound.domain)) {
+        return rule.index
+      }
+    })
+  }
+  await haproxyInstance().post(`v2/services/haproxy/configuration/http_request_rules`, {
+    json: {
+      index: foundIndex,
+      cond: "if",
+      cond_test: `{ hdr(Host) -i ${applicationFound.domain} } !{ ssl_fc }`,
+      type: "redirect",
+      redir_type: "scheme",
+      redir_value: "https",
+      redir_code: 301
+    },
+    searchParams: {
+      transaction_id: transactionId,
+      parent_name: 'http',
+      parent_type: 'frontend'
+    }
+  }).json()
+  await completeTransaction(transactionId)
+  await applicationFound.merge({ forceSsl: true }).save()
+  return response.redirect(`/applications/${params.name}`)
+
+})
+
+Route.post('/applications/:name/ssl/force/disable', async ({ params, response }) => {
+  const applicationFound = await Application.findByOrFail('name', params.name)
+  const transactionId = await getNextTransactionId()
+  const httpRules: HttpRequestRule = await haproxyInstance().get(`v2/services/haproxy/configuration/http_request_rules`, {
+    searchParams: {
+      parent_name: 'http',
+      parent_type: 'frontend'
+    },
+  }).json()
+  let foundIndex = 0
+  if (httpRules.data.length > 0) {
+    const foundRule = httpRules.data.find(rule => {
+      if (rule.cond_test.includes(applicationFound.domain)) {
+        return rule
+      }
+    })
+    if (foundRule) foundIndex = foundRule.index
+  }
+
+  await haproxyInstance().delete(`v2/services/haproxy/configuration/http_request_rules/${foundIndex}`, {
+    searchParams: {
+      transaction_id: transactionId,
+      parent_name: 'http',
+      parent_type: 'frontend'
+    }
+  }).json()
+  await completeTransaction(transactionId)
+  await applicationFound.merge({ forceSsl: false }).save()
+  return response.redirect(`/applications/${params.name}`)
+
+})
+Route.post('/applications/:name/ssl/generate', async ({ params, response }) => {
+  try {
+    const buildId = cuid()
+    const applicationFound = await Application.findByOrFail('name', params.name)
+    await applicationFound.load('destinationDocker')
+    await applicationFound.load('gitSource')
+    await applicationFound.gitSource.load('githubApp')
+    await letsEncryptQueue.add(buildId, { build_id: buildId, ...applicationFound.toJSON() })
+    return response.redirect(`/applications/${params.name}`)
+  } catch (error) {
+    return response.redirect(`/applications/${params.name}`)
+  }
 })
 
 Route.post('/applications/:name/deploy', async ({ params, response }) => {

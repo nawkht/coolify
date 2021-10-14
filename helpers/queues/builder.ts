@@ -1,12 +1,12 @@
 
 import Build from 'App/Models/Build'
 import crypto from 'crypto'
-import * as buildpacks from './buildPacks'
-import * as importers from './importers'
-import { dockerInstance } from './docker'
-import { asyncExecShell, saveBuildLog } from './common'
+import * as buildpacks from '../buildPacks'
+import * as importers from '../importers'
+import { dockerInstance } from '../docker'
+import { asyncExecShell, saveBuildLog } from '../common'
 import Application from 'App/Models/Application'
-import got from 'got'
+import { completeTransaction, getNextTransactionId,  haproxyInstance } from 'Helpers/haproxy'
 
 export default async function (job) {
   /*
@@ -98,29 +98,18 @@ export default async function (job) {
     }
   }
   // TODO: Separate logic
-  const haproxy = got.extend({
-    prefixUrl: 'http://coolify-haproxy:5555',
-    username: 'haproxy-dataplaneapi',
-    password: 'adminpwd'
-  });
+  const haproxy = haproxyInstance()
 
   try {
-    let version = 1
-    const raw = await haproxy.get(`v2/services/haproxy/configuration/raw`).json()
-    if (raw?._version) version = raw._version
 
-    const newTransaction: any = await haproxy.post('v2/services/haproxy/transactions', {
-      searchParams: {
-        version
-      }
-    }).json()
+    const transactionId = await getNextTransactionId()
 
     try {
       const backendFound = await haproxy.get(`v2/services/haproxy/configuration/backends/${domain}`).json()
       if (backendFound) {
         await haproxy.delete(`v2/services/haproxy/configuration/backends/${domain}`, {
           searchParams: {
-            transaction_id: newTransaction.id
+            transaction_id: transactionId
           },
         }).json()
         saveBuildLog({ line: 'HAPROXY - Old backend deleted.', buildId })
@@ -130,11 +119,10 @@ export default async function (job) {
       // Backend not found, no worries, it means it's not defined yet
     }
     try {
-      console.log(oldDomain)
       if (oldDomain) {
         await haproxy.delete(`v2/services/haproxy/configuration/backends/${oldDomain}`, {
           searchParams: {
-            transaction_id: newTransaction.id
+            transaction_id: transactionId
           },
         }).json()
         const applicationFound = await Application.findOrFail(id)
@@ -146,7 +134,7 @@ export default async function (job) {
     }
     await haproxy.post('v2/services/haproxy/configuration/backends', {
       searchParams: {
-        transaction_id: newTransaction.id
+        transaction_id: transactionId
       },
       json: {
         "forwardfor": { "enabled": "enabled" },
@@ -157,7 +145,7 @@ export default async function (job) {
     saveBuildLog({ line: 'HAPROXY - New backend defined.', buildId })
     await haproxy.post('v2/services/haproxy/configuration/servers', {
       searchParams: {
-        transaction_id: newTransaction.id,
+        transaction_id: transactionId,
         backend: domain
       },
       json: {
@@ -168,29 +156,10 @@ export default async function (job) {
       }
     })
     saveBuildLog({ line: 'HAPROXY - New servers defined.', buildId })
-
-    await haproxy.put(`v2/services/haproxy/transactions/${newTransaction.id}`)
+    await completeTransaction(transactionId)
     saveBuildLog({ line: 'HAPROXY - Transaction done.', buildId })
   } catch (error) {
     console.log(error)
-  }
-  // Set SSL with Let's encrypt
-  if (destinationDocker) {
-    // Deploy to docker
-    // TODO: Must be localhost
-    if (destinationDocker.engine === '/var/run/docker.sock') {
-      // TODO: Must wait if there is a certbot container already running
-      saveBuildLog({ line: 'Requesting SSL cert.', buildId })
-      const { stderr } = await asyncExecShell(`docker run -it --rm --name certbot -p 9080:9080 -v "/usr/local/etc/haproxy/:/usr/local/etc/haproxy/" certbot/certbot --work-dir /usr/local/etc/haproxy/ssl certonly --standalone --preferred-challenges http --http-01-address 0.0.0.0 --http-01-port 9080 -d ${domain} --agree-tos --non-interactive --register-unsafely-without-email`)
-      if (stderr) console.log(stderr)
-      saveBuildLog({ line: 'SSL cert requested successfully!', buildId })
-    }
-    // TODO: Implement remote docker engine
-
-  } else if (destinationSwarm) {
-    // Deploy to swarm
-  } else if (kubernetes) {
-    // Deploy to k8s
   }
 
 

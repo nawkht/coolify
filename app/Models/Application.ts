@@ -35,6 +35,9 @@ export default class Application extends BaseModel {
   public configHash: string
 
   @column()
+  public forceSsl: boolean
+
+  @column()
   public repository: string
 
   @column()

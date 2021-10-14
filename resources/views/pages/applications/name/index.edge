@@ -60,6 +60,20 @@
             <input type="submit" value="Deploy" id="deploy" disabled></button>
         </form>
     @end
+
+    <form action="/applications/{{name}}/ssl/generate" method="POST">
+        <input type="submit" value="Generate SSL Cert" id="sslGenerate"></button>
+    </form>
+
+    @if(!application.forceSsl)
+        <form action="/applications/{{name}}/ssl/force" method="POST">
+            <input type="submit" value="Force https" id="sslForce"></button>
+        </form>
+    @else
+        <form action="/applications/{{name}}/ssl/force/disable" method="POST">
+            <input type="submit" value="Disable force https" id="disableSslForce"></button>
+        </form>
+    @end
 <script>
     function getFormData(form){
         var unindexed_array = form.serializeArray();
