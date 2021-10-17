@@ -10,7 +10,7 @@
         <a class="text-white bg-gray-800">Set Repository (Set Git Source first)</a>
     @end
     <a class="text-white bg-gray-800" href='/applications/{{name}}/destination'>Set Destination</a>
-    <p>Name: {{name}} Domain: {{application.domain}}</p>
+    <p>Name: {{name}} Domain: <a href="http://{{application.domain}}">{{application.domain}}</a></p>
         @if (application.gitSource)
         <p>Source: {{application.gitSource.name}}</p>
     @else
@@ -28,7 +28,7 @@
     @else
         <p>Destination: Not set<p>
     @end
-    <form action="/applications/{{name}}/configuration" method="POST" id="configuration">
+    <form action="/applications/{{name}}/configuration" method="POST" id="configuration" class="flex flex-col">
         <select name="buildPack" id="buildPack">
             @if (application.buildPack)
                 <option disabled>Select a buildpack</option>
@@ -48,6 +48,10 @@
         <input id="installCommand" name="installCommand" value="{{application.installCommand || ''}}" placeholder="yarn install">
         <label for="buildCommand">Build Command</label>
         <input id="buildCommand" name="buildCommand" value="{{application.buildCommand || ''}}" placeholder="yarn build">
+        <label for="baseDirectory">Base Directory</label>
+        <input id="baseDirectory" name="baseDirectory" value="{{application.baseDirectory || ''}}" placeholder=".">
+        <label for="publishDirectory">Publish Directory</label>
+        <input id="publishDirectory" name="publishDirectory" value="{{application.publishDirectory || ''}}" placeholder="dist">
         <label for="startCommand">Start Command</label>
         <input id="startCommand" name="startCommand" value="{{application.startCommand || ''}}" placeholder="yarn start">
         <input type="submit" value="Save Configuration" id="saveConfiguration" disabled >
