@@ -1,3 +1,3 @@
 import node from './node'
-
-export { node }
+import staticApp from './static'
+export { node, staticApp as static }

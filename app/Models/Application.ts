@@ -32,6 +32,12 @@ export default class Application extends BaseModel {
   public startCommand: string
   
   @column()
+  public baseDirectory: string
+  
+  @column()
+  public publishDirectory: string
+  
+  @column()
   public configHash: string
 
   @column()

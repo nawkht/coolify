@@ -264,12 +264,12 @@ Route.post('/applications/:name/destination', async ({ request, params, response
 
 
 Route.post('/applications/:name/configuration', async ({ request, params, response }) => {
-  const { buildPack, port, installCommand, buildCommand, startCommand, domain } = request.body()
+  const { buildPack, port, installCommand, buildCommand, startCommand, domain, baseDirectory, publishDirectory } = request.body()
   const applicationFound = await Application.findByOrFail('name', params.name)
   if (applicationFound.domain !== domain) {
-    await applicationFound.merge({ buildPack, port, installCommand, buildCommand, startCommand, domain, oldDomain: applicationFound.domain }).save()
+    await applicationFound.merge({ buildPack, port, installCommand, buildCommand, startCommand, domain, oldDomain: applicationFound.domain, baseDirectory, publishDirectory }).save()
   } else {
-    await applicationFound.merge({ buildPack, port, installCommand, buildCommand, startCommand, domain }).save()
+    await applicationFound.merge({ buildPack, port, installCommand, buildCommand, startCommand, domain, baseDirectory, publishDirectory }).save()
   }
 
   return response.redirect().back()

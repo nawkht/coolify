@@ -91,7 +91,16 @@
         });
         return indexed_array;
     }
+    function isPortShown() {
+            if ($('#buildPack').val() === 'static') {
+                $('label[for=port], #port').hide()
+            } else {
+                $('label[for=port], #port').show()
+            }
+        }
     $(document).ready(()=> {
+
+        isPortShown()
         const init = {
             buildPack: $('#buildPack').val(),
             domain: $('#domain').val(),
@@ -99,12 +108,21 @@
             installCommand:$('#installCommand').val(),
             buildCommand:$('#buildCommand').val(),
             startCommand:$('#startCommand').val(),
+            baseDirectory:$('#baseDirectory').val(),
+            publishDirectory:$('#publishDirectory').val(),
+        
         }
-        $('#buildPack, #domain, #port, #installCommand, #buildCommand, #startCommand').on('input',function(e) {
+        $('#buildPack').on('input', function(e) {
+            isPortShown()
+        })
+
+        $('#buildPack, #domain, #port, #installCommand, #buildCommand, #startCommand, #baseDirectory, #publishDirectory').on('input',function(e) {
             const configuration = getFormData($('#configuration'))
             // Only simple types used, no deep comparison needed.
             if (JSON.stringify(configuration) !== JSON.stringify(init)) {
                 $('#saveConfiguration').removeAttr('disabled')
+                $('#sslGenerate').attr('disabled', 'true')
+                $('#sslForce').attr('disabled', 'true')
                 $('#deploy').attr('disabled', 'true')
             } else {
                 $('#saveConfiguration').attr('disabled', 'true')

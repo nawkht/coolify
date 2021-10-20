@@ -13,7 +13,8 @@ export default async function (job) {
     Edge cases:
     1 - Change build pack and redeploy, what should happen?
   */
-  let { id, repository, branch, build_pack: buildPack, destinationDocker, gitSource, build_id: buildId, config_hash: configHash, port, install_command: installCommand, build_command: buildCommand, start_command: startCommand, domain, old_domain: oldDomain } = job.data
+
+  let { id, repository, branch, build_pack: buildPack, destinationDocker, gitSource, build_id: buildId, config_hash: configHash, port, install_command: installCommand, build_command: buildCommand, start_command: startCommand, domain, old_domain: oldDomain, base_directory: baseDirectory, publish_directory: publishDirectory } = job.data
 
   const destinationSwarm = null
   const kubernetes = null
@@ -32,12 +33,15 @@ export default async function (job) {
   })
   const workdir = `/tmp/build-sources/${repository}/${build.id}`
   await asyncExecShell(`mkdir -p ${workdir}`)
-
+console.log(workdir)
   // TODO: Separate logic
   if (buildPack === 'node') {
     if (!port) port = 3000
     if (!installCommand) installCommand = 'yarn install'
     if (!startCommand) startCommand = 'yarn start'
+  }
+  if (buildPack === 'static') {
+    port = 80
   }
   const commit = await importers[gitSource.type]({ workdir, githubAppId: gitSource.githubApp.id, repository, branch, buildId: build.id })
   await build.merge({ commit }).save()
@@ -52,18 +56,20 @@ export default async function (job) {
     deployNeeded = false
   }
 
+  // TODO: This needs to be corrected.
   const image = await docker.engine.getImage(`${id}:${commit.slice(0, 7)}`)
 
   let imageFound = false
   try {
     await image.inspect()
-    imageFound = true
+    imageFound = false
   } catch (error) {
     //
   }
   // TODO: Should check if it's running!
   if (!imageFound || deployNeeded) {
-    await buildpacks[buildPack]({ id, commit, workdir, docker, buildId: build.id, port, installCommand, buildCommand, startCommand })
+    await buildpacks[buildPack]({ id, commit, workdir, docker, buildId: build.id, port, installCommand, buildCommand, startCommand, baseDirectory, publishDirectory })
+    deployNeeded = true
   } else {
     deployNeeded = false
     saveBuildLog({ line: 'Nothing changed.', buildId })
@@ -163,5 +169,5 @@ export default async function (job) {
   }
 
 
-  await asyncExecShell(`rm -fr ${workdir}`)
+  // await asyncExecShell(`rm -fr ${workdir}`)
 }
