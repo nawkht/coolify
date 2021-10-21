@@ -2,7 +2,7 @@
 @set('title', `Applications | ${name}`)
 
 @section('body')
-    <p>Name: {{name}}</p>
+    <p>Name: {{name}} Domain: <a href="http://{{domain}}" target="_blank">{{domain}}</a></p>
     {{status}}
     <button onclick="window.location.reload(false)">Reload</button>
     @each(log in logs)

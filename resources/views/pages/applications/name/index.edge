@@ -3,47 +3,48 @@
 @set('jquery', true)
 
 @section('body')
-    <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a>
-    @if(application.gitSource)
-        <a class="text-white bg-gray-800" href='/applications/{{name}}/repository'>Set Repository</a>
-    @else
-        <a class="text-white bg-gray-800">Set Repository (Set Git Source first)</a>
-    @end
-    <a class="text-white bg-gray-800" href='/applications/{{name}}/destination'>Set Destination</a>
-    <p>Name: {{name}} Domain: <a href="http://{{application.domain}}">{{application.domain}}</a></p>
+    <p>Name: {{name}} 
+        @if(application.domain)
+        Domain: <a href="http://{{application.domain}}" target="_blank">{{application.domain}}</a>
+        @end
+    </p>
         @if (application.gitSource)
-        <p>Source: {{application.gitSource.name}}</p>
+        <p>Source: {{application.gitSource.name}} <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a></p>
     @else
-        <p>Source: Not set<p>
+        <p>Source: Not set <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a><p>
     @end
 
     @if (application.repository && application.branch)
-        <p>Repo: {{application.repository}}:{{application.branch}}</p>
+        <p>Repo: {{application.repository}}:{{application.branch}}
+            @if(application.gitSource)
+        <a class="text-white bg-gray-800" href='/applications/{{name}}/repository'>Set Repository</a>
     @else
-        <p>Repo: Not set<p>
+        <a class="text-white bg-gray-800">(Set Git Source first)</a>
+    @end
+        </p>
+    @else
+        <p>Repo: Not set
+            @if(application.gitSource)
+            <a class="text-white bg-gray-800" href='/applications/{{name}}/repository'>Set Repository</a>
+        @else
+            <a class="text-white bg-gray-800">(Set Git Source first)</a>
+        @end
+            <p>
     @end
   
     @if (application.destinationDocker)
-        <p>Destination: {{application.destinationDocker.name}}</p>
+        <p>Destination: {{application.destinationDocker.name}}     <a class="text-white bg-gray-800" href="/applications/{{name}}/destination">Set Destination</a></p>
     @else
-        <p>Destination: Not set<p>
+        <p>Destination: Not set     <a class="text-white bg-gray-800" href="/applications/{{name}}/destination">Set Destination</a><p>
     @end
+    <div>BuildPack: {{application.buildPack}} <a class="text-white bg-gray-800" href="/applications/{{name}}/buildpack">Set Buildpack</a></div>
     <form action="/applications/{{name}}/configuration" method="POST" id="configuration" class="flex flex-col">
-        <select name="buildPack" id="buildPack">
-            @if (application.buildPack)
-                <option disabled>Select a buildpack</option>
-                <option selected>{{application.buildPack}}</option>
-            @else
-                <option selected disabled>Select a buildpack</option>
-            @end
-            @each(buildPack in buildPacks.filter(bp => bp !== application.buildPack))
-                <option>{{buildPack}}</option>
-            @end
-            </select>
         <label for="domain">Domain</label>
         <input id="domain" name="domain" value="{{application.domain || ''}}"  placeholder="coollabs.io" required>
-        <label for="port">Port</label>
-        <input id="port" name="port" value="{{application.port || ''}}"  placeholder="3000">
+        @if (application.buildPack !== 'static')
+            <label for="port">Port</label>
+            <input id="port" name="port" value="{{application.port || ''}}"  placeholder="3000">
+        @end
         <label for="installCommand">Install Command</label>
         <input id="installCommand" name="installCommand" value="{{application.installCommand || ''}}" placeholder="yarn install">
         <label for="buildCommand">Build Command</label>
@@ -91,16 +92,7 @@
         });
         return indexed_array;
     }
-    function isPortShown() {
-            if ($('#buildPack').val() === 'static') {
-                $('label[for=port], #port').hide()
-            } else {
-                $('label[for=port], #port').show()
-            }
-        }
     $(document).ready(()=> {
-
-        isPortShown()
         const init = {
             buildPack: $('#buildPack').val(),
             domain: $('#domain').val(),
@@ -112,9 +104,6 @@
             publishDirectory:$('#publishDirectory').val(),
         
         }
-        $('#buildPack').on('input', function(e) {
-            isPortShown()
-        })
 
         $('#buildPack, #domain, #port, #installCommand, #buildCommand, #startCommand, #baseDirectory, #publishDirectory').on('input',function(e) {
             const configuration = getFormData($('#configuration'))

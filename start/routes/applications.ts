@@ -41,7 +41,9 @@ Route.post('/applications/:name/delete', async ({ response, params }) => {
 Route.get('/applications/:name', async ({ response, params, view }) => {
   if (params.name === 'new') return view.render('pages/applications/new')
   let applicationFound = await Application.findByOrFail('name', params.name)
-  const builds = await Database.from('builds').select('*').where('application_id', applicationFound.id)
+  const builds = await Database.from('builds')
+    .select('*')
+    .where('application_id', applicationFound.id)
   if (applicationFound) {
     try {
       await applicationFound.load('gitSource')
@@ -52,7 +54,7 @@ Route.get('/applications/:name', async ({ response, params, view }) => {
       name: params.name,
       application: applicationFound,
       buildPacks,
-      builds
+      builds,
     })
   }
   return response.redirect('/dashboard')
@@ -61,54 +63,59 @@ Route.get('/applications/:name', async ({ response, params, view }) => {
 Route.post('/applications/:name/ssl/force', async ({ params, response }) => {
   const applicationFound = await Application.findByOrFail('name', params.name)
   const transactionId = await getNextTransactionId()
-  const httpRules: HttpRequestRule = await haproxyInstance().get(`v2/services/haproxy/configuration/http_request_rules`, {
-    searchParams: {
-      parent_name: 'http',
-      parent_type: 'frontend'
-    },
-  }).json()
+  const httpRules: HttpRequestRule = await haproxyInstance()
+    .get(`v2/services/haproxy/configuration/http_request_rules`, {
+      searchParams: {
+        parent_name: 'http',
+        parent_type: 'frontend',
+      },
+    })
+    .json()
   let foundIndex = 0
   if (httpRules.data.length > 0) {
-    foundIndex = httpRules.data.find(rule => {
+    foundIndex = httpRules.data.find((rule) => {
       if (rule.cond_test.includes(applicationFound.domain)) {
         return rule.index
       }
     })
   }
-  await haproxyInstance().post(`v2/services/haproxy/configuration/http_request_rules`, {
-    json: {
-      index: foundIndex,
-      cond: "if",
-      cond_test: `{ hdr(Host) -i ${applicationFound.domain} } !{ ssl_fc }`,
-      type: "redirect",
-      redir_type: "scheme",
-      redir_value: "https",
-      redir_code: 301
-    },
-    searchParams: {
-      transaction_id: transactionId,
-      parent_name: 'http',
-      parent_type: 'frontend'
-    }
-  }).json()
+  await haproxyInstance()
+    .post(`v2/services/haproxy/configuration/http_request_rules`, {
+      json: {
+        index: foundIndex,
+        cond: 'if',
+        cond_test: `{ hdr(Host) -i ${applicationFound.domain} } !{ ssl_fc }`,
+        type: 'redirect',
+        redir_type: 'scheme',
+        redir_value: 'https',
+        redir_code: 301,
+      },
+      searchParams: {
+        transaction_id: transactionId,
+        parent_name: 'http',
+        parent_type: 'frontend',
+      },
+    })
+    .json()
   await completeTransaction(transactionId)
   await applicationFound.merge({ forceSsl: true }).save()
   return response.redirect(`/applications/${params.name}`)
-
 })
 
 Route.post('/applications/:name/ssl/force/disable', async ({ params, response }) => {
   const applicationFound = await Application.findByOrFail('name', params.name)
   const transactionId = await getNextTransactionId()
-  const httpRules: HttpRequestRule = await haproxyInstance().get(`v2/services/haproxy/configuration/http_request_rules`, {
-    searchParams: {
-      parent_name: 'http',
-      parent_type: 'frontend'
-    },
-  }).json()
+  const httpRules: HttpRequestRule = await haproxyInstance()
+    .get(`v2/services/haproxy/configuration/http_request_rules`, {
+      searchParams: {
+        parent_name: 'http',
+        parent_type: 'frontend',
+      },
+    })
+    .json()
   let foundIndex = 0
   if (httpRules.data.length > 0) {
-    const foundRule = httpRules.data.find(rule => {
+    const foundRule = httpRules.data.find((rule) => {
       if (rule.cond_test.includes(applicationFound.domain)) {
         return rule
       }
@@ -116,17 +123,18 @@ Route.post('/applications/:name/ssl/force/disable', async ({ params, response })
     if (foundRule) foundIndex = foundRule.index
   }
 
-  await haproxyInstance().delete(`v2/services/haproxy/configuration/http_request_rules/${foundIndex}`, {
-    searchParams: {
-      transaction_id: transactionId,
-      parent_name: 'http',
-      parent_type: 'frontend'
-    }
-  }).json()
+  await haproxyInstance()
+    .delete(`v2/services/haproxy/configuration/http_request_rules/${foundIndex}`, {
+      searchParams: {
+        transaction_id: transactionId,
+        parent_name: 'http',
+        parent_type: 'frontend',
+      },
+    })
+    .json()
   await completeTransaction(transactionId)
   await applicationFound.merge({ forceSsl: false }).save()
   return response.redirect(`/applications/${params.name}`)
-
 })
 Route.post('/applications/:name/ssl/generate', async ({ params, response }) => {
   try {
@@ -150,7 +158,18 @@ Route.post('/applications/:name/deploy', async ({ params, response }) => {
     await applicationFound.load('gitSource')
     await applicationFound.gitSource.load('githubApp')
     if (!applicationFound.configHash) {
-      const configHash = crypto.createHash('sha256').update(JSON.stringify({ buildPack: applicationFound.buildPack, port: applicationFound.port, installCommand: applicationFound.installCommand, buildCommand: applicationFound.buildCommand, startCommand: applicationFound.startCommand })).digest('hex')
+      const configHash = crypto
+        .createHash('sha256')
+        .update(
+          JSON.stringify({
+            buildPack: applicationFound.buildPack,
+            port: applicationFound.port,
+            installCommand: applicationFound.installCommand,
+            buildCommand: applicationFound.buildCommand,
+            startCommand: applicationFound.startCommand,
+          })
+        )
+        .digest('hex')
       await applicationFound.merge({ configHash }).save()
     }
     await buildQueue.add(buildId, { build_id: buildId, ...applicationFound.toJSON() })
@@ -161,14 +180,20 @@ Route.post('/applications/:name/deploy', async ({ params, response }) => {
 })
 
 Route.get('/applications/:name/logs/:buildId', async ({ params, view }) => {
-  let logs;
+  const applicationFound = await Application.findByOrFail('name', params.name)
+  let logs
   try {
     logs = await Database.from('build_logs').where('build_id', params.buildId)
   } catch (error) {
     console.log(error)
   }
   const build = await Build.findOrFail(params.buildId)
-  return view.render('pages/applications/name/logs/log', { name: params.name, logs, status: build.status })
+  return view.render('pages/applications/name/logs/log', {
+    name: params.name,
+    logs,
+    status: build.status,
+    domain: applicationFound.domain
+  })
 })
 
 Route.get('/applications/:name/source', async ({ params, view }) => {
@@ -262,15 +287,57 @@ Route.post('/applications/:name/destination', async ({ request, params, response
   return response.redirect(`/applications/${params.name}`)
 })
 
-
 Route.post('/applications/:name/configuration', async ({ request, params, response }) => {
-  const { buildPack, port, installCommand, buildCommand, startCommand, domain, baseDirectory, publishDirectory } = request.body()
+  const {
+    buildPack,
+    port,
+    installCommand,
+    buildCommand,
+    startCommand,
+    domain,
+    baseDirectory,
+    publishDirectory,
+  } = request.body()
   const applicationFound = await Application.findByOrFail('name', params.name)
   if (applicationFound.domain !== domain) {
-    await applicationFound.merge({ buildPack, port, installCommand, buildCommand, startCommand, domain, oldDomain: applicationFound.domain, baseDirectory, publishDirectory }).save()
+    await applicationFound
+      .merge({
+        buildPack,
+        port,
+        installCommand,
+        buildCommand,
+        startCommand,
+        domain,
+        oldDomain: applicationFound.domain,
+        baseDirectory,
+        publishDirectory,
+      })
+      .save()
   } else {
-    await applicationFound.merge({ buildPack, port, installCommand, buildCommand, startCommand, domain, baseDirectory, publishDirectory }).save()
+    await applicationFound
+      .merge({
+        buildPack,
+        port,
+        installCommand,
+        buildCommand,
+        startCommand,
+        domain,
+        baseDirectory,
+        publishDirectory,
+      })
+      .save()
   }
 
   return response.redirect().back()
+})
+
+Route.get('/applications/:name/buildpack', async ({ view, params }) => {
+  return view.render('pages/applications/name/buildpack', { buildPacks, name: params.name })
+})
+
+Route.post('/applications/:name/buildpack', async ({ request, response, params }) => {
+  const { buildPack } = request.body()
+  const applicationFound = await Application.findByOrFail('name', params.name)
+  await applicationFound.merge({ buildPack }).save()
+  response.redirect(`/applications/${params.name}`)
 })
