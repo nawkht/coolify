@@ -13,13 +13,13 @@ const dev = mode === 'development'
 const buildQueueName = dev ? cuid() : 'build_queue'
 const buildQueue = new Queue(buildQueueName, {
   connection: {
-    host: 'coolify-redis'
+    host: 'localhost'
   }
 })
 const buildWorker = new Worker(buildQueueName, async (job) => await builder(job), {
   concurrency: 2,
   connection: {
-    host: 'coolify-redis'
+    host: 'localhost'
   }
 })
 
@@ -42,14 +42,14 @@ buildWorker.on('failed', async (job: Job, failedReason: string) => {
 const letsEncryptQueueName = dev ? cuid() : 'letsencrypt_queue'
 const letsEncryptQueue = new Queue(letsEncryptQueueName, {
   connection: {
-    host: 'coolify-redis'
+    host: 'localhost'
   }
 })
 
 const letsEncryptWorker = new Worker(letsEncryptQueueName, async (job) => await letsencrypt(job), {
   concurrency: 1,
   connection: {
-    host: 'coolify-redis'
+    host: 'localhost'
   }
 })
 letsEncryptWorker.on('completed', async (job: Job) => {

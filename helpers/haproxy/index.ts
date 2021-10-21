@@ -3,7 +3,7 @@ import { NewTransaction, RawHaproxyConfiguration } from "Helpers/types";
 
 function haproxyInstance() {
     return got.extend({
-        prefixUrl: 'http://coolify-haproxy:5555',
+        prefixUrl: 'http://localhost:5555',
         username: 'haproxy-dataplaneapi',
         password: 'adminpwd'
     });

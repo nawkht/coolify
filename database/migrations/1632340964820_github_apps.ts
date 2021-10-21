@@ -7,14 +7,14 @@ export default class GithubApps extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.string('id').primary()
       table.string('name').unique()
-      table.string('git_id')
 
+      table.string('git_id')
       table.integer('app_id')
       table.integer('installation_id')
       table.string('client_id')
       table.string('client_secret')
       table.string('webhook_secret')
-      table.string('private_key')
+      table.text('private_key')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */

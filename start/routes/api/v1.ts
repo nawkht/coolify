@@ -24,7 +24,6 @@ Route.group(() => {
     return 'OK'
   })
 
-
   Route.get('/webhooks/github/installation', async ({ request, response }) => {
     const { gitSourceId, installation_id } = request.qs()
     const gitSource = await GitSource.findOrFail(gitSourceId)
@@ -52,6 +51,6 @@ Route.group(() => {
     } else {
       return `Something went wrong. Not found Git Source with id of ${state}.`
     }
-    await response.redirect('/settings/sources')
+    response.redirect('/settings/sources')
   })
 }).prefix('api/v1')

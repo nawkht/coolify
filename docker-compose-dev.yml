@@ -48,6 +48,10 @@ services:
         published: 8404
         protocol: tcp
         mode: host
+      - target: 5555
+        published: 5555
+        protocol: tcp
+        mode: host
   redis:
     image: 'bitnami/redis:6.2'
     container_name: coolify-redis

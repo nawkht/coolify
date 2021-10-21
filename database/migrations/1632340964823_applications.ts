@@ -20,6 +20,11 @@ export default class Applications extends BaseSchema {
       table.string('start_command')
       table.string('config_hash')
 
+      table.string('base_directory')
+      table.string('publish_directory')
+      
+      table.boolean('force_ssl').defaultTo(false)
+
       table.string('destination_docker_id').references('destination_dockers.id')
 
       table.string('git_source_id').references('git_sources.id')

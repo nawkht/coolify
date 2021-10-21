@@ -6,7 +6,6 @@
  */
 
 import Env from '@ioc:Adonis/Core/Env'
-import Application from '@ioc:Adonis/Core/Application'
 import { DatabaseConfig } from '@ioc:Adonis/Lucid/Database'
 
 const databaseConfig: DatabaseConfig = {
@@ -23,30 +22,13 @@ const databaseConfig: DatabaseConfig = {
   connection: Env.get('DB_CONNECTION'),
 
   connections: {
-    /*
-    |--------------------------------------------------------------------------
-    | SQLite
-    |--------------------------------------------------------------------------
-    |
-    | Configuration for the SQLite database.  Make sure to install the driver
-    | from npm when using this connection
-    |
-    | npm i sqlite3
-    |
-    */
-    sqlite: {
-      client: 'sqlite',
-      connection: {
-        filename: Application.tmpPath('db.sqlite3'),
-      },
-      seeders: {
-        paths: ['./database/seeders/MainSeeder'],
-      },
+     pg: {
+      client: 'pg',
+      connection: Env.get('PG_CONNECTION_STRING'),
       migrations: {
-        naturalSort: true,
+        naturalSort: false,
       },
-      useNullAsDefault: true,
-      healthCheck: false,
+      healthCheck: true,
       debug: true,
     },
   },
