@@ -1,16 +1,10 @@
 @layout('layouts/main')
-@set('title', `Applications | ${name}`)
+@set('title', `Select a buildpack for ${request.params().name}`)
 
 @section('body')
-Select buildpack
-@each(buildPack in buildPacks)
-<form action="/applications/{{name}}/buildpack" method="POST">
-	<input class="hidden" name="buildPack" value={{buildPack}}>
-	@!component('../components/primary-button', {
-	text: `Use ${buildPack}`,
-	type: 'submit',
-	class: 'py-2 px-8 text-white bg-gray-800 w-96 hover:bg-gray-500',
-	})
-</form>
-@end
+@include('partials/applications-header')
+
+<div class="flex space-x-2 justify-center pt-10">
+	@include('partials/buildpacks')
+</div>
 @end

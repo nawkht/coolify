@@ -1,15 +1,9 @@
 @layout('layouts/main')
-@set('title', `Applications | ${name}`)
+@set('title', `Select a destination for ${request.params().name}`)
 
 @section('body')
-
-<p>Name: {{name}}</p>
-<form action="/applications/{{name}}/destination" method="POST">
-    <select name="destination" id="dockerDestination">
-        @each (docker in dockers)
-            <option value="{{docker.id}}">{{docker.name}}</option>
-        @end
-    </select>
-    <input id="save" type="submit" value="Save">
-  </form>
+@include('partials/applications-header')
+<div class="pt-10">
+    @include('partials/destinations')
+</div>
 @end

@@ -14,10 +14,6 @@
     </div>
     <input name="engine" placeholder="/var/run/docker.sock" value="/var/run/docker.sock">
     <input name="network" placeholder="network">
-    @!component('../components/primary-button', {
-        text: `Add new destination`,
-        type: 'submit',
-        class: 'py-2 px-8 text-white bg-gray-800 w-96 hover:bg-gray-500',
-    })
+    <button type="submit">Add new destination</button>
 </form>
 @end

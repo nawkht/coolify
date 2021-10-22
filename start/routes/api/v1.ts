@@ -6,7 +6,7 @@ import got from 'got'
 
 Route.group(() => {
   Route.get('/', async ({ response }) => {
-    return response.redirect('/dashboard')
+    return response.redirect('/')
   })
 
   Route.get('/healthz', async () => {

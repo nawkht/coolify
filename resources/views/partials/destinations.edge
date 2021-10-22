@@ -1,0 +1,6 @@
+@each(docker in dockers)
+<form action="/applications/{{name}}/destination" method="POST">
+    <input class="hidden" name="destination" value={{docker.id}}>
+    <button type="submit">Use {{docker.name}}</button>
+</form>
+@end

@@ -1,0 +1,36 @@
+<nav class="nav-side">
+    @if(application.domain)
+    <form action="/applications/{{name}}/deploy" method="POST">
+        @if(application.gitSource && application.repository && application.destinationDocker)
+            <button title="Deploy" type="submit" id="deploy" class="icons text-green-500 tooltip-bottom text-sm" data-tooltip="Queue for deployment">
+        @else
+            <button title="Deploy" type="submit" id="deploy" disabled class="tooltip-bottom text-sm" data-tooltip="Queue for deployment">
+        @end
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+    </form>
+    @end
+    <form action="/applications/{{name}}/delete" method="POST">
+        <button title="Delete application" type="submit" id="delete" class="icons hover:text-red-500 tooltip-bottom text-sm" data-tooltip="Delete application"><svg class="w-6 h-6" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
+            </svg></button>
+    </form>
+    {{--  @if(application.domain)
+    <div class="border border-green-900 h-8"></div>
+    <form action="/applications/{{name}}/ssl/generate" method="POST">
+        <button type="submit" id="sslGenerate">Generate SSL Certificate</button>
+    </form>
+    @if(!application.forceSsl)
+    <form action="/applications/{{name}}/ssl/force" method="POST">
+        <button type="submit" id="sslForce">Force https</button>
+    </form>
+    @else
+    <form action="/applications/{{name}}/ssl/force/disable" method="POST">
+        <button type="submit" id="disableSslForce">Disable force https</button>
+    </form>
+    @end
+    @end  --}}
+</nav>

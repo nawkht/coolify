@@ -19,17 +19,14 @@
 */
 
 import Route from '@ioc:Adonis/Core/Route'
-import Application from 'App/Models/Application'
+import Database from '@ioc:Adonis/Lucid/Database'
 
 import './routes/applications'
 import './routes/settings'
 import './routes/api/v1'
 
 Route.get('/', async ({ view }) => {
-  return view.render('pages/home')
-})
 
-Route.get('/dashboard', async ({ view }) => {
-  const applications = await Application.all()
-  return view.render('pages/dashboard', { applications })
+  const applications = await Database.from('applications').count('* as total')
+  return view.render('pages/dashboard', { applicationsCount: applications[0].total })
 })

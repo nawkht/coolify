@@ -6,11 +6,7 @@
     @if(found)
     <div class="text-red-500">Application name already exists</div>
     @end
-    <input name="appName" placeholder="Application name">
-    @!component('../components/primary-button', {
-      text: 'Create Application',
-      type: 'submit',
-      class: 'py-2 px-8 text-white bg-gray-800',
-    })
+    <input name="appName" placeholder="Application name" autofocus>
+    <button type="submit">Create application</button>
   </form>
 @end

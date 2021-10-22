@@ -2,15 +2,16 @@
 @set('title', 'Dashboard')
 
 @section('body')
-<p>Applications</p>
-<div class="flex space-x-2 justify-center">
-  @each(app in applications)
-  <p>
-  <a href="/applications/{{app.name}}">
-    {{ app.name }}
-  </a>
-</p>
-  @end
+<div>
+  <div class="font-bold text-xl">Dashboard</div>
+  <div class="flex space-x-2">
+    <a href="/applications">Total Applications: {{applicationsCount}}</a>
+  </div>
+  <div class="flex space-x-2">
+    Total Databases: 0
+  </div>
+  <div class="flex space-x-2">
+    Total Services: 0
+  </div>
 </div>
-
 @end

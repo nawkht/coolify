@@ -1,0 +1,47 @@
+<div class="flex text-xl font-bold pb-2 fixed left-0 top-0 z-50 pl-20 my-2">
+    <span>{{name}}</span>
+    @if(!application.gitSource?.id)
+    <div class="flex">
+        <span class="px-1 arrow-right-applications">></span>
+        <div>Set Git Source</div>
+    </div>
+    @elseif(!application.destinationDocker?.id)
+    <div class="flex">
+        <span class="px-1 arrow-right-applications">></span>
+        <div>Set Destination</div>
+    </div>
+    @elseif(!application.repository)
+    <div class="flex">
+        <span class="px-1 arrow-right-applications">></span>
+        <div>Set Repository / Branch</div>
+    </div>
+    @elseif(!application.buildPack)
+    <div class="flex">
+        <span class="px-1 arrow-right-applications">></span>
+        <div>Set BuildPack</div>
+    </div>
+    @elseif(!application.domain)
+    <div class="flex">
+        <span class="px-1 arrow-right-applications">></span>
+        <div>Configure Domain & Others</div>
+    </div>
+    @else 
+    <div class="flex">
+        <span class="px-1 arrow-right-applications">></span>
+        <span class="pr-2"><a href="http://{{application.domain}}" target="_blank">{{application.domain}}</a></span>
+        @if (application.repository && application.branch)
+        <a href="{{application.gitSource.htmlUrl}}/{{application.repository}}/tree/{{application.branch}}"
+            target="_blank">
+            <div class="icons">
+                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                    </path>
+                </svg>
+            </div>
+        </a>
+        @end
+    </div>
+    @end
+</div>

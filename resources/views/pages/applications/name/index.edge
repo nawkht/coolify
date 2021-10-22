@@ -3,86 +3,122 @@
 @set('jquery', true)
 
 @section('body')
-    <p>Name: {{name}} 
-        @if(application.domain)
-        Domain: <a href="http://{{application.domain}}" target="_blank">{{application.domain}}</a>
-        @end
-    </p>
-        @if (application.gitSource)
-        <p>Source: {{application.gitSource.name}} <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a></p>
-    @else
-        <p>Source: Not set <a class="text-white bg-gray-800" href='/applications/{{name}}/source'>Set Git Source</a><p>
-    @end
+@include('partials/applications-header')
+@include('partials/applications-nav')
 
-    @if (application.repository && application.branch)
-        <p>Repo: {{application.repository}}:{{application.branch}}
-            @if(application.gitSource)
-        <a class="text-white bg-gray-800" href='/applications/{{name}}/repository'>Set Repository</a>
-    @else
-        <a class="text-white bg-gray-800">(Set Git Source first)</a>
-    @end
-        </p>
-    @else
-        <p>Repo: Not set
-            @if(application.gitSource)
-            <a class="text-white bg-gray-800" href='/applications/{{name}}/repository'>Set Repository</a>
-        @else
-            <a class="text-white bg-gray-800">(Set Git Source first)</a>
-        @end
-            <p>
-    @end
-  
-    @if (application.destinationDocker)
-        <p>Destination: {{application.destinationDocker.name}}     <a class="text-white bg-gray-800" href="/applications/{{name}}/destination">Set Destination</a></p>
-    @else
-        <p>Destination: Not set     <a class="text-white bg-gray-800" href="/applications/{{name}}/destination">Set Destination</a><p>
-    @end
-    <div>BuildPack: {{application.buildPack}} <a class="text-white bg-gray-800" href="/applications/{{name}}/buildpack">Set Buildpack</a></div>
-    <form action="/applications/{{name}}/configuration" method="POST" id="configuration" class="flex flex-col">
-        <label for="domain">Domain</label>
-        <input id="domain" name="domain" value="{{application.domain || ''}}"  placeholder="coollabs.io" required>
+<div class="flex justify-center pt-10">
+    @if (!application.gitSource?.id)
+    @include('partials/gitSources')
+    @elseif (!application.destinationDocker?.id)
+    @include('partials/destinations')
+    @elseif (!application.repository)
+    @include('partials/repository')
+    @elseif (!application.buildPack)
+    @include('partials/buildpacks')
+    @elseif (application.repository && application.gitSource.id && application.destinationDocker.id)
+    <form action="/applications/{{name}}/configuration" method="POST" id="configuration"
+        class="grid grid-flow-row gap-2 py-4">
+        <div class="flex space-x-2 h-8 items-center">
+            <div class="font-bold text-xl text-white">Configuration</div>
+            <button type="submit" id="saveConfiguration" class="hidden">Save</button>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="buildPack">Git Source</label>
+            <div class="col-span-2">
+                <a href="/applications/{{name}}/source" class="no-underline"><span
+                        class="arrow-right-applications">></span><input value="{{application.gitSource.name}}" disabled
+                        class="bg-coolblack cursor-pointer hover:underline"></a>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="repository">Git Repository</label>
+            <div class="col-span-2">
+                <a href="/applications/{{name}}/repository" class="no-underline"><span
+                        class="arrow-right-applications">></span><input
+                        value="{{application.repository}}/{{application.branch}}" disabled
+                        class="bg-coolblack cursor-pointer hover:underline"></a>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="buildPack">Destination</label>
+            <div class="col-span-2">
+                <a href="/applications/{{name}}/destination" class="no-underline"><span
+                        class="arrow-right-applications">></span><input value="{{application.destinationDocker.name}}"
+                        disabled class="bg-coolblack cursor-pointer hover:underline"></a>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center pb-8">
+            <label for="buildPack">Build Pack</label>
+            <div class="col-span-2">
+                <a href="/applications/{{name}}/buildpack" class="no-underline"><span
+                        class="arrow-right-applications">></span><input value="{{application.buildPack}}" disabled
+                        class="bg-coolblack cursor-pointer hover:underline"></a>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="domain">Domain</label>
+            <div class="col-span-2">
+                <input id="domain" name="domain" value="{{application.domain || ''}}" pattern="^([a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,}$" placeholder="eg: coollabs.io"
+                    required autofocus>
+            </div>
+        </div>
+
         @if (application.buildPack !== 'static')
+        <div class="grid grid-cols-3 items-center">
             <label for="port">Port</label>
-            <input id="port" name="port" value="{{application.port || ''}}"  placeholder="3000">
+            <div class="col-span-2">
+                <input id="port" name="port" value="{{application.port || ''}}" placeholder="default: 3000">
+            </div>
+        </div>
         @end
-        <label for="installCommand">Install Command</label>
-        <input id="installCommand" name="installCommand" value="{{application.installCommand || ''}}" placeholder="yarn install">
-        <label for="buildCommand">Build Command</label>
-        <input id="buildCommand" name="buildCommand" value="{{application.buildCommand || ''}}" placeholder="yarn build">
-        <label for="baseDirectory">Base Directory</label>
-        <input id="baseDirectory" name="baseDirectory" value="{{application.baseDirectory || ''}}" placeholder=".">
-        <label for="publishDirectory">Publish Directory</label>
-        <input id="publishDirectory" name="publishDirectory" value="{{application.publishDirectory || ''}}" placeholder="dist">
-        <label for="startCommand">Start Command</label>
-        <input id="startCommand" name="startCommand" value="{{application.startCommand || ''}}" placeholder="yarn start">
-        <input type="submit" value="Save Configuration" id="saveConfiguration" disabled >
-    </form>
-    @if(application.gitSource && application.repository && application.destinationDocker)
-        <form action="/applications/{{name}}/deploy" method="POST">
-            <input type="submit" value="Deploy" id="deploy"></button>
-        </form>
-    @else
-        <form>
-            <input type="submit" value="Deploy" id="deploy" disabled></button>
-        </form>
-    @end
 
-    <form action="/applications/{{name}}/ssl/generate" method="POST">
-        <input type="submit" value="Generate SSL Cert" id="sslGenerate"></button>
-    </form>
+        <div class="grid grid-cols-3 items-center pt-8">
+            <label for="installCommand">Install Command</label>
+            <div class="col-span-2">
+                <input id="installCommand" name="installCommand" value="{{application.installCommand || ''}}"
+                    placeholder="default: yarn install">
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="buildCommand">Build Command</label>
+            <div class="col-span-2">
+                <input id="buildCommand" name="buildCommand" value="{{application.buildCommand || ''}}"
+                    placeholder="default: yarn build">
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center pb-8">
+            <label for="startCommand" class="">Start Command</label>
+            <div class="col-span-2">
+                <input id="startCommand" name="startCommand" value="{{application.startCommand || ''}}"
+                    placeholder="default: yarn start">
+            </div>
 
-    @if(!application.forceSsl)
-        <form action="/applications/{{name}}/ssl/force" method="POST">
-            <input type="submit" value="Force https" id="sslForce"></button>
-        </form>
-    @else
-        <form action="/applications/{{name}}/ssl/force/disable" method="POST">
-            <input type="submit" value="Disable force https" id="disableSslForce"></button>
-        </form>
+        </div>
+        <div class="grid grid-cols-3">
+            <label for="baseDirectory">Base Directory</label>
+            <div class="col-span-2">
+                <input id="baseDirectory" name="baseDirectory" value="{{application.baseDirectory || ''}}"
+                    placeholder="default: /">
+                @!component('../components/helper', {
+                text: 'Directory to use as the base of all commands. Could be useful with monorepos.'
+                })
+            </div>
+        </div>
+        <div class="grid grid-cols-3">
+            <label for="publishDirectory">Publish Directory</label>
+            <div class="col-span-2">
+                <input id="publishDirectory" name="publishDirectory" value="{{application.publishDirectory || ''}}"
+                    placeholder="eg: dist or _site or public">
+                @!component('../components/helper', {
+                text: 'Directory containing all the assets for deployment.'
+                })
+            </div>
+        </div>
+    </form>
     @end
-        <form action="/applications/{{name}}/delete" method="POST">
-            <input type="submit" value="Delete" id="delete"></button>
-        </form>
+</div>
+
+
 <script>
     function getFormData(form){
         const unindexed_array = form.serializeArray();
@@ -93,6 +129,7 @@
         return indexed_array;
     }
     $(document).ready(()=> {
+        $('#configuration').attr('onsubmit','return false;');
         const init = {
             buildPack: $('#buildPack').val(),
             domain: $('#domain').val(),
@@ -102,19 +139,26 @@
             startCommand:$('#startCommand').val(),
             baseDirectory:$('#baseDirectory').val(),
             publishDirectory:$('#publishDirectory').val(),
-        
         }
 
         $('#buildPack, #domain, #port, #installCommand, #buildCommand, #startCommand, #baseDirectory, #publishDirectory').on('input',function(e) {
             const configuration = getFormData($('#configuration'))
             // Only simple types used, no deep comparison needed.
-            if (JSON.stringify(configuration) !== JSON.stringify(init)) {
-                $('#saveConfiguration').removeAttr('disabled')
+            const sortObject = o => Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {})
+            if (JSON.stringify(sortObject(configuration)) !== JSON.stringify(sortObject(init))) {
+                // $('#saveConfiguration').removeAttr('disabled')
+                $('#configuration').attr('onsubmit','return true;');
+                $('#saveConfiguration').removeClass('hidden')
                 $('#sslGenerate').attr('disabled', 'true')
                 $('#sslForce').attr('disabled', 'true')
                 $('#deploy').attr('disabled', 'true')
             } else {
-                $('#saveConfiguration').attr('disabled', 'true')
+                // $('#saveConfiguration').attr('disabled', 'true')
+                $('#configuration').attr('onsubmit','return false;');
+                $('#saveConfiguration').addClass('hidden')
+                $('#deploy').removeAttr('disabled')
+                $('#sslGenerate').removeAttr('disabled')
+                $('#sslForce').removeAttr('disabled')
                 $('#deploy').removeAttr('disabled')
             }
 

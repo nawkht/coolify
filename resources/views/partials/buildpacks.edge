@@ -1,0 +1,8 @@
+<div class="flex space-x-2 justify-center">
+    @each(buildPack in buildPacks)
+    <form action="/applications/{{name}}/buildpack" method="POST">
+        <input class="hidden" name="buildPack" value={{buildPack}}>
+        <button type="submit">Use {{buildPack}}</button>
+    </form>
+    @end
+</div>
