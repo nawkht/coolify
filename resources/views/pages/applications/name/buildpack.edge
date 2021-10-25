@@ -2,7 +2,7 @@
 @set('title', `Select a buildpack for ${request.params().name}`)
 
 @section('body')
-@include('partials/applications-header')
+@include('partials/applications/name')
 
 <div class="flex space-x-2 justify-center pt-10">
 	@include('partials/buildpacks')

@@ -1,6 +1,6 @@
 @if (!gitSources || gitSources.length === 0)
 <div>No Git Source found with a configured Git Application</div>
-<a href="/settings/sources/new" class="no-underline">
+<a href="/sources/new" class="no-underline">
     <button class="bg-green-700">Configure a new Git Application</button>
 </a>
 @else
@@ -12,8 +12,5 @@
         <button type="submit">Use {{source.name}} as source</button>
     </form>
     @end
-    <a href="/settings/sources/new" class="no-underline">
-        <button class="bg-green-700">New</button>
-    </a>
 </div>
 @end

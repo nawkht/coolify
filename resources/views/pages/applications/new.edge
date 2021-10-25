@@ -2,11 +2,14 @@
 @set('title', `Applications | New`)
 
 @section('body')
-<form action="/applications/new" method="POST">
-    @if(found)
-    <div class="text-red-500">Application name already exists</div>
-    @end
-    <input name="appName" placeholder="Application name" autofocus>
-    <button type="submit">Create application</button>
+<div class="font-bold text-xl">Add new application</div>
+<div class="pt-10">
+  <form action="/applications/new" method="POST">
+    <div class="flex flex-col items-center space-y-4">
+      @include('partials/error')
+      <input name="appName" placeholder="Application name" autofocus>
+      <button type="submit">Create application</button>
+    </div>
   </form>
+</div>
 @end

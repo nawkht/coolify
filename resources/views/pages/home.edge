@@ -2,18 +2,18 @@
 @set('title', 'Helo')
 
 @section('body')
-      <div class="flex space-x-2">
-        @if(isLoggedIn)
-          <form action="/logout" method="POST">
-            <button type="submit">Logout</button>
-          </form>
-        @else
+<div class="flex space-x-2">
+  @if(isLoggedIn)
+  <form action="/logout" method="POST">
+    <button type="submit">Logout</button>
+  </form>
+  @else
 
-        <form action="/login" method="POST" class="space-x-2">
-          <input name="email" type="text" class="border px-2" placeholder="email">
-          <input name="password" type="password" class="border px-2" placeholder="password">
-            <button type="submit">Login</button>
-        </form>
-        @end
-      </div>
-    @end
+  <form action="/login" method="POST" class="space-x-2">
+    <input name="email" type="text" class="border px-2" placeholder="email">
+    <input name="password" type="password" class="border px-2" placeholder="password">
+    <button type="submit">Login</button>
+  </form>
+  @end
+</div>
+@end

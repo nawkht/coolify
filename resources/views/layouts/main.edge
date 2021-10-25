@@ -4,9 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }}</title>
+  <title>{{ title || 'Coolify' }}</title>
   <link href="https://fonts.googleapis.com/css?family=Poppins:400,500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  {{--  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">  --}}
   <link rel="stylesheet" type="text/css" href="{{ asset('assets/app.css') }}">
   @if (reload)
   <meta http-equiv="refresh" content="2">
@@ -28,9 +29,9 @@
         <div class="w-10 h-10 my-2"><img src="/favicon.png" alt="coolLabs logo" /></div>
         <div class="flex flex-col space-y-4 py-2">
           @if (request.url() === '/')
-            <a href='/' class="icons text-blue-500 bg-warmGray-800 tooltip-right" data-tooltip="Dashboard">
+            <a href='/' class="icons text-white bg-warmGray-800 tooltip-right" data-tooltip="Dashboard">
           @else
-            <a href='/' class="icons hover:text-blue-500 tooltip-right" data-tooltip="Dashboard">
+            <a href='/' class="icons hover:text-white tooltip-right" data-tooltip="Dashboard">
           @end
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg">
@@ -52,10 +53,10 @@
             </path>
             </svg>
           </a>
-          @if (request.url().startsWith('/gitSources'))
-            <a href='/gitSources' class="icons text-orange-500 bg-warmGray-800 tooltip-right" data-tooltip="Git Sources">
+          @if (request.url().startsWith('/sources'))
+            <a href='/sources' class="icons text-orange-500 bg-warmGray-800 tooltip-right" data-tooltip="Git Sources">
           @else
-            <a href='/gitSources' class="icons hover:text-orange-500 tooltip-right" data-tooltip="Git Sources">
+            <a href='/sources' class="icons hover:text-orange-500 tooltip-right" data-tooltip="Git Sources">
           @end
             <svg xmlns="http://www.w3.org/2000/svg"  class="w-6 h-6 fill-current" viewBox="0 0 24 24" style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;"><path d="m21.62 11.108-8.731-8.729a1.292 1.292 0 0 0-1.823 0L9.257 4.19l2.299 2.3a1.532 1.532 0 0 1 1.939 1.95l2.214 2.217a1.53 1.53 0 0 1 1.583 2.531c-.599.6-1.566.6-2.166 0a1.536 1.536 0 0 1-.337-1.662l-2.074-2.063V14.9c.146.071.286.169.407.29a1.537 1.537 0 0 1 0 2.166 1.536 1.536 0 0 1-2.174 0 1.528 1.528 0 0 1 0-2.164c.152-.15.322-.264.504-.339v-5.49a1.529 1.529 0 0 1-.83-2.008l-2.26-2.271-5.987 5.982c-.5.504-.5 1.32 0 1.824l8.731 8.729a1.286 1.286 0 0 0 1.821 0l8.69-8.689a1.284 1.284 0 0 0 .003-1.822"></path></svg>
           </a>
@@ -67,6 +68,22 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 fill-current" viewBox="0 0 24 24" style="fill: rgba(0, 0, 0, 1);transform: ;msFilter:;"><path d="M20.17 9.82a4.76 4.76 0 0 0-.84.07 3.12 3.12 0 0 0-1.43-2.14l-.28-.16-.19.27a3.7 3.7 0 0 0-.51 1.19 2.84 2.84 0 0 0 .33 2.22 4.11 4.11 0 0 1-1.45.35H2.63a.63.63 0 0 0-.63.62 9.6 9.6 0 0 0 .58 3.39 5 5 0 0 0 2 2.6 8.86 8.86 0 0 0 4.42.95 13.27 13.27 0 0 0 2.42-.18 10.09 10.09 0 0 0 3.19-1.15A8.9 8.9 0 0 0 16.78 16a11.94 11.94 0 0 0 2.13-3.67h.19a3.08 3.08 0 0 0 2.23-.84 2.36 2.36 0 0 0 .59-.87l.08-.22-.2-.16a2.69 2.69 0 0 0-1.63-.42z"></path><path d="M5.61 9.35H3.85a.16.16 0 0 0-.16.15v1.58a.16.16 0 0 0 .16.15h1.76a.16.16 0 0 0 .16-.15V9.5a.16.16 0 0 0-.16-.15zm2.44 0H6.28a.16.16 0 0 0-.16.15v1.58a.16.16 0 0 0 .16.15h1.77a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15zm2.47 0H8.75a.15.15 0 0 0-.15.15v1.58a.15.15 0 0 0 .15.15h1.77a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15zm.67 0a.15.15 0 0 0-.19.15v1.58a.15.15 0 0 0 .15.15H13a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15zM6.28 7.09H8a.16.16 0 0 1 .16.16v1.56A.16.16 0 0 1 8 9H6.28a.15.15 0 0 1-.15-.15V7.24a.15.15 0 0 1 .15-.15zm2.47 0h1.77a.15.15 0 0 1 .15.15v1.57a.16.16 0 0 1-.16.16H8.75a.15.15 0 0 1-.15-.15V7.24a.15.15 0 0 1 .15-.15zm2.44 0H13a.15.15 0 0 1 .15.15v1.57A.15.15 0 0 1 13 9h-1.81a.16.16 0 0 1-.19-.19V7.24a.15.15 0 0 1 .19-.15z"></path><rect x="11.04" y="4.82" width="2.07" height="1.88" rx=".15"></rect><path d="M13.65 9.35a.15.15 0 0 0-.15.15v1.58a.15.15 0 0 0 .15.15h1.77a.15.15 0 0 0 .15-.15V9.5a.15.15 0 0 0-.15-.15z"></path></svg>
           </a>
           <div class="border-t border-warmGray-700"></div>
+          @if (request.url().startsWith('/databases'))
+            <a href='/databases' class="icons text-purple-500 bg-warmGray-800 tooltip-right" data-tooltip="Databases">
+          @else
+            <a href='/databases' class="icons hover:text-purple-500 tooltip-right" data-tooltip="Databases">
+          @end
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+          </a>
+          <div class="border-t border-warmGray-700"></div>
+          @if (request.url().startsWith('/services'))
+          <a href='/services' class="icons text-pink-500 bg-warmGray-800 tooltip-right" data-tooltip="Services">
+        @else
+          <a href='/services' class="icons hover:text-pink-500 tooltip-right" data-tooltip="Services">
+        @end
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>
+        </a>
+        <div class="border-t border-warmGray-700"></div>
           @if (request.url().startsWith('/settings'))
             <a href='/settings' class="icons text-yellow-500 bg-warmGray-800 tooltip-right" data-tooltip="Settings">
           @else
@@ -81,7 +98,6 @@
             </path>
             </svg>
           </a>
-
         </div>
         <div class="flex-1"></div>
         <div class="w-full text-warmGray-400 hover:bg-warmGray-800 hover:text-white text-center font-bold">

@@ -13,13 +13,24 @@ Route.group(() => {
     return 'OK'
   })
 
+  Route.post('/applications/domain/isAvailable', async ({ request, response }) => {
+    const { domain} = request.body()
+    const domainFound = await Application.findBy('domain', domain)
+    if (domainFound) {
+      return response
+        .status(409)
+        .send(`Domain already configured.`)
+    }
+    return 'OK'
+  })
+
   Route.post('/applications/repository/isAvailable', async ({ request, response }) => {
     const { repository, branch } = request.body()
     const repositoryFound = await Application.findBy('repository', repository)
     if (repositoryFound?.branch === branch) {
       return response
         .status(409)
-        .send(`Repository and branch is already configured on ${repositoryFound?.name}.`)
+        .send(`Repository and branch is already configured for ${repositoryFound?.name}.`)
     }
     return 'OK'
   })

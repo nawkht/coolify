@@ -24,7 +24,7 @@ Route.group(() => {
     const appName = request.input('appName')
     const found = await Application.findBy('name', appName)
     if (found) {
-      return view.render('pages/applications/new', { found: true })
+      return view.render('pages/applications/new', { error: "Application with this name is already exists." })
     }
     await Application.create({
       name: appName,
@@ -68,8 +68,7 @@ Route.group(() => {
         buildPacks,
         builds,
         dockers,
-        gitSources,
-        githubAppToken: session.get('githubAppToken')
+        gitSources
       })
     }
     return response.redirect('/')
@@ -212,19 +211,25 @@ Route.group(() => {
   })
 
   Route.get('/applications/:name/source', async ({ params, view }) => {
-    const applicationFound = await Application.findBy('name', params.name)
+    const applicationFound = await Application.findByOrFail('name', params.name)
     const gitSources = await (await GitSource.all()).filter((source) => source.githubAppId)
-    if (applicationFound) {
-      try {
-        await applicationFound.load('gitSource')
-        await applicationFound.gitSource.load('githubApp')
-      } catch (error) { }
-      return view.render('pages/applications/name/source', {
-        application: applicationFound,
-        gitSources,
-      })
-    }
-    return view.render('pages/applications/name/source')
+    await applicationFound.load('gitSource')
+    await applicationFound.gitSource.load('githubApp')
+    return view.render('pages/applications/name/source', {
+      application: applicationFound,
+      gitSources,
+    })
+    // if (applicationFound) {
+    //   try {
+    //     await applicationFound.load('gitSource')
+    //     await applicationFound.gitSource.load('githubApp')
+    //   } catch (error) { }
+    //   return view.render('pages/applications/name/source', {
+    //     application: applicationFound,
+    //     gitSources,
+    //   })
+    // }
+    // return view.render('pages/applications/name/source')
   })
 
   Route.post('/applications/:name/source', async ({ response, params, request }) => {
@@ -242,37 +247,23 @@ Route.group(() => {
   })
 
   Route.get('/applications/:name/repository', async ({ params, view, session }) => {
-    const applicationFound = await Application.findBy('name', params.name)
-    const gitSources = await GitSource.all()
-    if (applicationFound) {
-      try {
-        await applicationFound.load('gitSource')
-        await applicationFound.gitSource.load('githubApp')
-      } catch (error) { }
-      if (applicationFound.gitSource) {
-        const payload = {
-          iat: Math.round(new Date().getTime() / 1000),
-          exp: Math.round(new Date().getTime() / 1000 + 60),
-          iss: applicationFound.gitSource.githubApp.appId,
-        }
-        const jwtToken = jsonwebtoken.sign(payload, applicationFound.gitSource.githubApp.privateKey, {
-          algorithm: 'RS256',
-        })
-        session.put('githubAppToken', jwtToken)
-
-        return view.render('pages/applications/name/repository', {
-          application: applicationFound,
-          gitSources,
-          githubAppToken: session.get('githubAppToken'),
-        })
-      } else {
-        return view.render('pages/applications/name/repository', {
-          application: applicationFound,
-          gitSources,
-        })
-      }
+    const applicationFound = await Application.findByOrFail('name', params.name)
+    await applicationFound.load('gitSource')
+    await applicationFound.gitSource.load('githubApp')
+    const payload = {
+      iat: Math.round(new Date().getTime() / 1000),
+      exp: Math.round(new Date().getTime() / 1000 + 60),
+      iss: applicationFound.gitSource.githubApp.appId,
     }
-    return view.render('pages/applications/name/repository')
+    const jwtToken = jsonwebtoken.sign(payload, applicationFound.gitSource.githubApp.privateKey, {
+      algorithm: 'RS256',
+    })
+    session.put('githubAppToken', jwtToken)
+
+    return view.render('pages/applications/name/repository', {
+      application: applicationFound
+    })
+
   })
 
   Route.post('/applications/:name/repository', async ({ response, request, params }) => {
@@ -312,37 +303,41 @@ Route.group(() => {
       baseDirectory,
       publishDirectory,
     } = request.body()
-    const applicationFound = await Application.findByOrFail('name', params.name)
-    if (applicationFound.domain !== domain) {
-      await applicationFound
-        .merge({
-          buildPack,
-          port,
-          installCommand,
-          buildCommand,
-          startCommand,
-          domain,
-          oldDomain: applicationFound.domain,
-          baseDirectory,
-          publishDirectory,
-        })
-        .save()
-    } else {
-      await applicationFound
-        .merge({
-          buildPack,
-          port,
-          installCommand,
-          buildCommand,
-          startCommand,
-          domain,
-          baseDirectory,
-          publishDirectory,
-        })
-        .save()
+    try {
+      const applicationFound = await Application.findByOrFail('name', params.name)
+      if (applicationFound.domain !== domain) {
+        await applicationFound
+          .merge({
+            buildPack,
+            port,
+            installCommand,
+            buildCommand,
+            startCommand,
+            domain,
+            oldDomain: applicationFound.domain,
+            baseDirectory,
+            publishDirectory,
+          })
+          .save()
+      } else {
+        await applicationFound
+          .merge({
+            buildPack,
+            port,
+            installCommand,
+            buildCommand,
+            startCommand,
+            domain,
+            baseDirectory,
+            publishDirectory,
+          })
+          .save()
+      }
+      return response.redirect().back()
+    } catch (error) {
+      return response.redirect().back()
     }
 
-    return response.redirect().back()
   })
 
   Route.get('/applications/:name/buildpack', async ({ view, params }) => {
@@ -357,6 +352,75 @@ Route.group(() => {
     await applicationFound.merge({ buildPack }).save()
     response.redirect(`/applications/${params.name}`)
   })
+
+  Route.get('/sources', async ({ view }) => {
+    const gitSources = await GitSource.query().preload('githubApp')
+    return view.render('pages/sources/index', { gitSources })
+  })
+
+  Route.get('/sources/new', async ({ view }) => {
+    return view.render('pages/sources/new')
+  })
+
+  Route.post('/sources/new', async ({ request, response, view }) => {
+    const { name, type, htmlUrl, apiUrl, organization } = request.body()
+    console.log({ name, type, htmlUrl, apiUrl, organization })
+    try {
+      await GitSource.findByOrFail('name', name)
+      return view.render('pages/sources/new', { error: 'Name already in use.' })
+    } catch (error) {
+      await GitSource.create({ name, type, htmlUrl, apiUrl, organization })
+      return response.redirect('/sources')
+    }
+  })
+
+  Route.delete('/sources/delete', async ({ request, response }) => {
+    const { gitId } = request.body()
+    try {
+      const gitSource = await GitSource.findOrFail(gitId)
+      await gitSource.delete()
+      return response.send({ message: 'Git Source deleted successfully.' })
+    } catch (error) {
+      return response.status(500).send({ error: 'Cannot delete Git Source.' })
+    }
+
+  })
+
+  Route.get('/destinations', async ({ view }) => {
+    const dockers = await Database.from('destination_dockers').orderBy('created_at')
+    return view.render('pages/destinations/index', { dockers })
+  })
+
+  Route.get('/destinations/new', async ({ view }) => {
+    return view.render('pages/destinations/new')
+  })
+
+  Route.post('/destinations/new', async ({ view, request, response }) => {
+    const { name, engine, network } = request.body()
+    let { isSwarm } = request.body()
+    try {
+      await DestinationDocker.findByOrFail('name', name)
+      return view.render('pages/destinations/new', { error: 'Name already in use.' })
+    } catch (error) {
+      if (!isSwarm) {
+        isSwarm = 0
+      } else {
+        isSwarm = 1
+      }
+      await DestinationDocker.create({ name, isSwarm, engine, network })
+      return response.redirect('/destinations')
+    }
+  })
+
+  Route.get('/databases', async ({ view }) => {
+    return view.render('pages/databases/index')
+  })
+
+  Route.get('/services', async ({ view }) => {
+    return view.render('pages/services/index')
+  })
+
+
 
 }).middleware(({ view, request }, next) => {
   view.share({

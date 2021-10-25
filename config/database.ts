@@ -5,6 +5,7 @@
  * file.
  */
 
+import Application from '@ioc:Adonis/Core/Application'
 import Env from '@ioc:Adonis/Core/Env'
 import { DatabaseConfig } from '@ioc:Adonis/Lucid/Database'
 
@@ -22,7 +23,7 @@ const databaseConfig: DatabaseConfig = {
   connection: Env.get('DB_CONNECTION'),
 
   connections: {
-     pg: {
+    pg: {
       client: 'pg',
       connection: Env.get('PG_CONNECTION_STRING'),
       migrations: {
@@ -31,6 +32,18 @@ const databaseConfig: DatabaseConfig = {
       healthCheck: true,
       debug: true,
     },
+    sqlite: {
+      client: 'sqlite',
+      connection: {
+        filename: Application.tmpPath('db.sqlite3'),
+      },
+      migrations: {
+        naturalSort: true,
+      },
+      useNullAsDefault: true,
+      healthCheck: false,
+      debug: false,
+    }
   },
 }
 

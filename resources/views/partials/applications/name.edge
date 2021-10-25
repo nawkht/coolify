@@ -1,34 +1,10 @@
 <div class="flex text-xl font-bold pb-2 fixed left-0 top-0 z-50 pl-20 my-2">
     <span>{{name}}</span>
-    @if(!application.gitSource?.id)
     <div class="flex">
         <span class="px-1 arrow-right-applications">></span>
-        <div>Set Git Source</div>
-    </div>
-    @elseif(!application.destinationDocker?.id)
-    <div class="flex">
-        <span class="px-1 arrow-right-applications">></span>
-        <div>Set Destination</div>
-    </div>
-    @elseif(!application.repository)
-    <div class="flex">
-        <span class="px-1 arrow-right-applications">></span>
-        <div>Set Repository / Branch</div>
-    </div>
-    @elseif(!application.buildPack)
-    <div class="flex">
-        <span class="px-1 arrow-right-applications">></span>
-        <div>Set BuildPack</div>
-    </div>
-    @elseif(!application.domain)
-    <div class="flex">
-        <span class="px-1 arrow-right-applications">></span>
-        <div>Configure Domain & Others</div>
-    </div>
-    @else 
-    <div class="flex">
-        <span class="px-1 arrow-right-applications">></span>
+        @if(application.domain)
         <span class="pr-2"><a href="http://{{application.domain}}" target="_blank">{{application.domain}}</a></span>
+        @end
         @if (application.repository && application.branch)
         <a href="{{application.gitSource.htmlUrl}}/{{application.repository}}/tree/{{application.branch}}"
             target="_blank">
@@ -43,5 +19,4 @@
         </a>
         @end
     </div>
-    @end
 </div>

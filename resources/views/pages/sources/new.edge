@@ -1,0 +1,59 @@
+@layout('layouts/main')
+@set('title', `New Git Source`)
+@section('body')
+
+<div class="font-bold text-xl flex space-x-1">
+    <div>Add new Git Source</div>
+</div>
+@if(error)
+<div>{{error}}</div>
+@end
+<div class="flex justify-center pt-10">
+    <form action="/sources/new" method="POST" class="grid grid-flow-row gap-2 py-4">
+        <div class="flex space-x-2 h-8 items-center">
+            <div class="font-bold text-xl text-white">Configuration</div>
+            <button type="submit" id="saveConfiguration">Save</button>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="name">Name</label>
+            <div class="col-span-2">
+                <input id="name" name="name" placeholder="GitHub.com" required autofocus>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+
+            <label for="type">Type</label>
+
+            <div class="col-span-2">
+                <select name="type" id="type" class="w-96">
+                    <option value="github">GitHub</option>
+                    <option value="gitlab">GitLab</option>
+                    <option value="bitbucket">BitBucket</option>
+                </select>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="htmlUrl">HTML URL</label>
+            <div class="col-span-2">
+                <input id="htmlUrl" type="url" name="htmlUrl" placeholder="eg: https://github.com" required>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 items-center">
+            <label for="apiUrl">API URL</label>
+            <div class="col-span-2">
+                <input id="apiUrl" type="url" placeholder="eg: https://api.github.com" required>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 ">
+            <label for="organization">Organization</label>
+            <div class="col-span-2">
+                <input id="organization" name="organization" placeholder="eg: coollabsio">
+                @!component('../components/helper', {
+                    text: 'Fill it if you would like to use an organization\'s as your Git Source. Otherwise your user will be used.'
+                    })
+            </div>
+        </div>
+    </form>
+</div>
+
+@end

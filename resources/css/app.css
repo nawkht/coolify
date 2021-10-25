@@ -17,6 +17,9 @@ main {
 input {
 	@apply text-xs px-2 rounded py-2 bg-transparent border border-transparent bg-warmGray-800 text-white transition duration-150 outline-none hover:bg-warmGray-700 focus:bg-warmGray-700 placeholder-warmGray-600 w-96;
 }
+select {
+	@apply text-xs rounded py-2 px-2 font-bold bg-warmGray-800 text-white transition duration-150 outline-none hover:bg-warmGray-700 disabled:text-warmGray-600;
+}
 
 label {
 	@apply w-64 inline-block;
@@ -30,9 +33,7 @@ a {
   @apply underline hover:text-white;
 }
 
-select {
-	@apply text-xs rounded py-1 px-6 font-bold bg-warmGray-800 text-white transition duration-150 outline-none hover:bg-warmGray-700 disabled:text-warmGray-600;
-}
+
 
 .content {
   @apply p-2 px-4;

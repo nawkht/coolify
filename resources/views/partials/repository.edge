@@ -15,15 +15,15 @@
     </form>
 
     <script>
-        async function loadRepos({ token, page }) {
-      const nextPage = page || 1
-      return $.ajax({ 
-        url: `https://api.github.com/installation/repositories?per_page=100&page=${nextPage}`,
-        headers: {
-            Authorization: `token ${token}`
-        }
-      })
-    }
+      async function loadRepos({ token, page }) {
+        const nextPage = page || 1
+        return $.ajax({ 
+          url: `https://api.github.com/installation/repositories?per_page=100&page=${nextPage}`,
+          headers: {
+              Authorization: `token ${token}`
+          }
+        })
+      }
       $(document).ready(()=> {
         let token;
         $('#branches').change(function () {
@@ -61,7 +61,7 @@
           url: `https://api.github.com/app/installations/{{application.gitSource.githubApp.installationId}}/access_tokens`,
           method: 'POST',
           headers: {
-            Authorization: `Bearer {{githubAppToken}}`
+            Authorization: `Bearer {{session.get('githubAppToken')}}`
           }
         }).done(async (data)=>{
           let page = 1

@@ -2,7 +2,6 @@ import GithubApp from "App/Models/GithubApp"
 import got from "got"
 import { asyncExecShell, saveBuildLog } from "Helpers/common"
 import jsonwebtoken from 'jsonwebtoken'
-import Logger from '@ioc:Adonis/Core/Logger'
 
 export default async function ({ workdir, githubAppId, repository, branch, buildId }): Promise<string> {
     try {

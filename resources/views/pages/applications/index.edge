@@ -11,7 +11,8 @@
 <div class="flex justify-center pt-10 space-x-4">
     @each(app in applications)
     <a href="/applications/{{app.name}}" class="no-underline">
-        <div class="w-32 bg-warmGray-800 rounded flex justify-center p-2 border-2 border-transparent hover:border-green-500 border-dashed transition duration-150 hover:scale-105">
+        <div
+            class="w-32 bg-warmGray-800 rounded flex justify-center p-2 border-2 border-transparent hover:border-green-500 border-dashed transition duration-150 hover:scale-105">
             {{ app.name }}
         </div>
     </a>

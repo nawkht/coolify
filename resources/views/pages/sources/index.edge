@@ -1,0 +1,122 @@
+@layout('layouts/main')
+@set('title', `Git Sources`)
+@set('jquery', true)
+
+@section('body')
+
+<div class="font-bold text-xl flex space-x-1">
+  <div>Git Sources</div>
+  <a href="/sources/new" class="no-underline">
+    <button class="bg-green-600">Add new</button>
+  </a>
+</div>
+@if(error)
+<div>{{error}}</div>
+@end
+<div class="flex justify-center pt-10">
+  <div class="flex flex-col items-center space-y-8">
+    @each (git in gitSources)
+    <div>
+      <div class="text-center pb-3 font-bold">{{git.name}}</div>
+      <form data-name={{git.name}} data-id={{git.id}} data-html_url={{git.htmlUrl}} data-type={{git.type}}>
+        @if (git.type ==='github' && !git.githubAppId)
+        <button id="addApp" data-organization={{git.organization}}>Create new GitHub App</button>
+        @end
+        @if (git.githubApp)
+        @if (git.githubApp.installationId)
+        <button id="update" data-name={{git.githubApp.name}}>Update Repositories</button>
+        @else
+        <button id="install" data-name={{git.githubApp.name}}>Install Repositories</button>
+        @end
+        @end
+        <button id="delete" class="bg-red-600 hover:bg-red-500">Delete Git Source</button>
+      </form>
+    </div>
+    @end
+  </div>
+</div>
+
+<script>
+  function dashify(str, options) {
+      if (typeof str !== 'string') return str;
+      return str
+        .trim()
+        .replace(/\W/g, (m) => (/[À-ž]/.test(m) ? m : '-'))
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, (m) => (options && options.condense ? '-' : m))
+        .toLowerCase();
+    }
+     $("form #install").click(function(e) {
+        e.preventDefault();
+        const name = $(this).data().name
+        window.location.replace(`https://github.com/apps/${name}/installations/new`)
+     })
+     $("form #update").click(function(e) {
+        e.preventDefault();
+        const name = $(this).data().name
+        window.location.replace(`https://github.com/apps/${name}/installations/new`)
+     })
+    $("form #addApp").click(function(e) {
+        e.preventDefault();
+        const organization = $(this).data().organization
+        const id = $(this).parent().data().id
+        const htmlUrl = $(this).parent().data().html_url
+        const type = $(this).parent().data().type
+
+        if (type === 'github') {
+          let url = 'settings/apps/new'
+          if (organization) url = `organizations/${organization}/settings/apps/new`
+          const host = dashify(window.location.host)
+          const data = JSON.stringify({
+            name: `coolify-${host}`,
+            url: `https://${window.location.host}`,
+            // hook_attributes: {
+            //     url: `https://${host}/api/v1/webhooks/deploy`
+            // },
+            redirect_url: `http://${window.location.host}/api/v1/webhooks/github`,
+            callback_urls: [`https://${window.location.host}/api/v1/login/github/app`],
+            public: false,
+            request_oauth_on_install: false,
+            setup_url: `http://${window.location.host}/api/v1/webhooks/github/installation?gitSourceId=${id}`,
+            setup_on_update: true,
+            default_permissions: {
+            contents: 'read',
+            metadata: 'read',
+            pull_requests: 'read',
+            emails: 'read'
+          },
+          // default_events: ['pull_request', 'push']
+        });
+        // console.log(git)
+        const form = document.createElement("form");
+        form.setAttribute("method", "post");
+        form.setAttribute("action", `${htmlUrl}/${url}?state=${id}`);
+        const input = document.createElement("input")
+        input.setAttribute("id", "manifest")
+        input.setAttribute("name", "manifest")
+        input.setAttribute("type", "hidden")
+        input.setAttribute("value", data)
+        form.appendChild(input)
+        document.getElementsByTagName("body")[0].appendChild(form);
+        form.submit()
+      }
+    });
+    $("form #delete").click(function(e) {
+        e.preventDefault();
+        const name = $(this).parent().data().name
+        const id = $(this).parent().data().id
+        const sure = confirm(`Are you sure you would like to delete '${name}'?`);
+        if (sure) {
+          $.ajax({ 
+            url: `/sources/delete`, 
+            method: 'DELETE', 
+            data: { gitId: id }
+          }).done(()=>{
+            window.location.reload()
+          }).fail((error)=> {
+            alert(error.responseJSON.error)
+          })
+        }
+      });
+</script>
+@end
